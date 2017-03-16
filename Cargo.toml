@@ -1,0 +1,11 @@
+[package]
+name = "poople"
+version = "0.1.0"
+authors = ["aaron"]
+
+[[bin]]
+doc = false
+name = "poople"
+path = "src/main.rs"
+
+[dependencies]
