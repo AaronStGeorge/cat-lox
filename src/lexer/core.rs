@@ -1,22 +1,26 @@
-use std::str::Chars;
-
-pub struct Lexer<'a> {
-    input: Chars<'a>,
+pub struct Lexer {
+    input: Vec<char>,
+    curr: usize,
 }
 
-impl<'a> Iterator for Lexer<'a> {
-    type Item = String;
+impl Iterator for Lexer {
+    type Item = char;
 
-    fn next(&mut self) -> Option<String> {
-        match self.input.next() {
-            Some(curr) => return Some(curr.to_string()),
-            None => return None,
+    fn next(&mut self) -> Option<char> {
+        if self.curr == self.input.len() {
+            return None;
+        } else {
+            self.curr += 1;
+            return Some(self.input[self.curr - 1]);
         }
     }
 }
 
-impl<'a> Lexer<'a> {
-    pub fn new(input: &'a str) -> Lexer {
-        Lexer { input: input.chars() }
+impl Lexer {
+    pub fn new(input: &str) -> Lexer {
+        Lexer {
+            input: input.chars().collect(),
+            curr: 0,
+        }
     }
 }

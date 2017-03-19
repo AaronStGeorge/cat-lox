@@ -1,8 +1,7 @@
-pub use self::tokens::*;
+pub use self::constants::*;
 pub use self::core::Lexer;
-
-mod tokens;
 mod core;
+mod constants;
 
 
 #[cfg(test)]
