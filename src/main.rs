@@ -1,6 +1,11 @@
 extern crate poople;
 
-fn main () {
-    let a = poople::lexer::add_two(2);
-    println!("{}", a);
+use poople::lexer::*;
+
+fn main() {
+    let lexer = Lexer::new("Aaron");
+
+    for i in lexer {
+        println!("{}", i);
+    }
 }
