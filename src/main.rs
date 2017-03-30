@@ -1,11 +1,11 @@
 extern crate poople;
 
-use poople::lexer::*;
+use poople::lexer::Lexer;
 
 fn main() {
-    let lexer = Lexer::new("忠犬ハチ公");
+    let lexer = Lexer::new("{ }();+,=let 90; fn() 忠犬ハチ公");
 
     for i in lexer {
-        println!("{}", i);
+        println!("{:?}", i);
     }
 }

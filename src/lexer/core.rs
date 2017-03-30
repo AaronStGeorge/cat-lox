@@ -1,26 +1,64 @@
-pub struct Lexer {
-    input: Vec<char>,
-    curr: usize,
+use std::str::Chars;
+use std::iter::Peekable;
+
+use lexer::token::*;
+
+pub struct Lexer<'a> {
+    input: Peekable<Chars<'a>>,
 }
 
-impl Iterator for Lexer {
-    type Item = char;
+impl<'a> Iterator for Lexer<'a> {
+    type Item = Token;
 
-    fn next(&mut self) -> Option<char> {
-        if self.curr == self.input.len() {
-            return None;
-        } else {
-            self.curr += 1;
-            return Some(self.input[self.curr - 1]);
+    fn next(&mut self) -> Option<Token> {
+        match self.input.next() {
+            Some(c) => {
+                // whitespace
+                if is_whitespace(&c) {
+                    return self.next();
+                }
+
+                // control token
+                if let Some(token) = control_token(&c) {
+                    return Some(token);
+                }
+
+                // literal or keyword
+                let mut literal = String::new();
+                literal.push(c);
+
+                loop {
+                    match self.input.peek() {
+                        Some(next) => {
+                            if control_token(&next).is_some() || is_whitespace(&next) {
+                                break;
+                            }
+                        }
+                        None => break,
+                    }
+
+                    if let Some(c) = self.input.next() {
+                        literal.push(c);
+                    }
+                }
+
+
+                // return keyword or litteral
+                if keyword(&literal).is_some() {
+                    keyword(&literal)
+                } else if literal.chars().all(|c| c.is_digit(10)) {
+                    Some(Token::Int { literal: literal })
+                } else {
+                    Some(Token::Ident { literal: literal })
+                }
+            }
+            None => None,
         }
     }
 }
 
-impl Lexer {
-    pub fn new(input: &str) -> Lexer {
-        Lexer {
-            input: input.chars().collect(),
-            curr: 0,
-        }
+impl<'a> Lexer<'a> {
+    pub fn new(input: &'a str) -> Lexer<'a> {
+        Lexer { input: input.chars().peekable() }
     }
 }
