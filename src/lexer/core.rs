@@ -3,6 +3,10 @@ use std::iter::Peekable;
 
 use lexer::token::*;
 
+// TOOD: investigate moving to a more official state machine
+// https://hoverbear.org/2016/10/12/rust-state-machine-pattern/
+
+
 pub struct Lexer<'a> {
     input: Peekable<Chars<'a>>,
 }
