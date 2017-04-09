@@ -30,12 +30,22 @@ pub enum Token {
     // Keywords
     Function,
     Let,
+    If,
+    Else,
+    Return,
+    True,
+    False,
 }
 
 pub fn keyword(s: &str) -> Option<Token> {
     match s {
-        "let" => Some(Token::Let),
         "fn" => Some(Token::Function),
+        "let" => Some(Token::Let),
+        "if" => Some(Token::If),
+        "else" => Some(Token::Else),
+        "return" => Some(Token::Return),
+        "true" => Some(Token::True),
+        "false" => Some(Token::False),
         &_ => None,
     }
 }

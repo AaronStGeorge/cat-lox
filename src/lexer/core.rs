@@ -13,6 +13,7 @@ impl Iterator for Lexer {
             None => None,
             // Operators
             Some('+') => Some(Token::Plus),
+            Some('-') => Some(Token::Minus),
             Some('*') => Some(Token::Asterisk),
             Some('<') => Some(Token::LessThan),
             Some('>') => Some(Token::GreaterThan),
@@ -29,6 +30,15 @@ impl Iterator for Lexer {
                         Some(Token::Equal)
                     }
                     _ => Some(Token::Assign),
+                }
+            }
+            Some('!') => {
+                match self.peek() {
+                    Some('=') => {
+                        self.advance();
+                        Some(Token::NotEqual)
+                    }
+                    _ => Some(Token::Bang),
                 }
             }
             Some('/') => {
@@ -59,7 +69,7 @@ impl Iterator for Lexer {
                 loop {
                     match self.peek() {
                         Some(next) => {
-                            if is_state_change_char(&next) {
+                            if is_blacklisted(&next) {
                                 break;
                             }
                         }
@@ -71,8 +81,6 @@ impl Iterator for Lexer {
                     }
                 }
 
-
-                // return keyword or literal
                 if keyword(&literal).is_some() {
                     keyword(&literal)
                 } else if literal.chars().all(|c| c.is_digit(10)) {
@@ -112,12 +120,13 @@ impl Lexer {
     }
 }
 
-/// A char that indicates that state is changing
+/// Is this char allowed to be in a literal?
 ///
 /// TODO: if we ever need to add a new state, both this and the next
 /// function above need to be changed. That violates the open closed
 /// principle, investigate refactoring.
-fn is_state_change_char(c: &char) -> bool {
-    let blacklist = vec![' ', '\n', '+', ';', '=', ',', ')', '(', '}', '{'];
+fn is_blacklisted(c: &char) -> bool {
+    let blacklist = vec!['+', '-', '*', '<', '>', '(', ')', ',', ';', '{', '}', '=', '!', '/',
+                         ' ', '\t', '\r', '\n'];
     blacklist.contains(c)
 }
