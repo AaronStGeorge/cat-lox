@@ -3,9 +3,9 @@ A a 💩ier dialect of the [Money](https://interpreterbook.com/#the-monkey-progr
 
 Goals
 - [ ] Implement using the rust language.
-- [ ] Full code coverage.
+- [ ] Reasonable code coverage.
 - [ ] Use no outside libraries.
-- [ ] 💩y syntax.
-- [ ] Create a program in poo-pl that computes 100 digits of π.
+- [ ] 💩y syntax (e.g. unicode support).
+- [ ] Create a program in poo-pl that computes 100th prime number.
 
 There is no intention of creating an industrial strength language implementation, this is a hobby project only.
