@@ -7,34 +7,29 @@ pub enum Token {
     Int { literal: String },
     // Operators
     Assign,
+    Asterisk,
+    Bang,
+    Minus,
     Plus,
+    Slash,
+    // Order
+    LessThan,
+    GreaterThan,
+    // Equality
+    Equal,
+    NotEqual,
     // Delimiters
     Comma,
     Semicolon,
-    // Parens
-    LParen,
-    RParen,
+    // Parentheses
+    LeftParentheses,
+    RightParentheses,
     // Braces
-    LBrace,
-    RBrace,
+    LeftBrace,
+    RightBrace,
     // Keywords
     Function,
     Let,
-}
-
-
-pub fn control_token(c: &char) -> Option<Token> {
-    match *c {
-        '+' => Some(Token::Plus),
-        ';' => Some(Token::Semicolon),
-        '=' => Some(Token::Assign),
-        ',' => Some(Token::Comma),
-        ')' => Some(Token::RParen),
-        '(' => Some(Token::LParen),
-        '}' => Some(Token::RBrace),
-        '{' => Some(Token::LBrace),
-        _ => None,
-    }
 }
 
 pub fn keyword(s: &str) -> Option<Token> {
@@ -43,8 +38,4 @@ pub fn keyword(s: &str) -> Option<Token> {
         "fn" => Some(Token::Function),
         &_ => None,
     }
-}
-
-pub fn is_whitespace(c: &char) -> bool {
-    *c == ' ' || *c == '\n' || *c == '\t' || *c == '\r'
 }

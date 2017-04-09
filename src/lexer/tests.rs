@@ -5,14 +5,17 @@ fn control_characters() {
     let input = "=+(){}";
     let expected = vec![Token::Assign,
                         Token::Plus,
-                        Token::LParen,
-                        Token::RParen,
-                        Token::LBrace,
-                        Token::RBrace];
+                        Token::LeftParentheses,
+                        Token::RightParentheses,
+                        Token::LeftBrace,
+                        Token::RightBrace];
 
     let lexer = Lexer::new(input);
-    for (i, tok) in lexer.enumerate() {
-        assert_eq!(tok, expected[i]);
+    let results: Vec<Token> = lexer.collect();
+    assert_eq!(results.len(), expected.len());
+
+    for (i, tok) in results.iter().enumerate() {
+        assert_eq!(*tok, expected[i]);
     }
 }
 
@@ -43,31 +46,34 @@ fn ints_fns_lets_idents() {
                         Token::Ident { literal: "add".to_string() },
                         Token::Assign,
                         Token::Function,
-                        Token::LParen,
+                        Token::LeftParentheses,
                         Token::Ident { literal: "x".to_string() },
                         Token::Comma,
                         Token::Ident { literal: "y".to_string() },
-                        Token::RParen,
-                        Token::LBrace,
+                        Token::RightParentheses,
+                        Token::LeftBrace,
                         Token::Ident { literal: "x".to_string() },
                         Token::Plus,
                         Token::Ident { literal: "y".to_string() },
                         Token::Semicolon,
-                        Token::RBrace,
+                        Token::RightBrace,
                         Token::Semicolon,
                         Token::Let,
                         Token::Ident { literal: "result".to_string() },
                         Token::Assign,
                         Token::Ident { literal: "add".to_string() },
-                        Token::LParen,
+                        Token::LeftParentheses,
                         Token::Ident { literal: "five".to_string() },
                         Token::Comma,
                         Token::Ident { literal: "ten".to_string() },
-                        Token::RParen,
+                        Token::RightParentheses,
                         Token::Semicolon];
 
     let lexer = Lexer::new(input);
-    for (i, tok) in lexer.enumerate() {
-        assert_eq!(tok, expected[i]);
+    let results: Vec<Token> = lexer.collect();
+    assert_eq!(results.len(), expected.len());
+
+    for (i, tok) in results.iter().enumerate() {
+        assert_eq!(*tok, expected[i]);
     }
 }

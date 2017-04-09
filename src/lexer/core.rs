@@ -1,53 +1,78 @@
-use std::str::Chars;
-use std::iter::Peekable;
-
 use lexer::token::*;
 
-// TOOD: investigate moving to a more official state machine
-// https://hoverbear.org/2016/10/12/rust-state-machine-pattern/
-
-
-pub struct Lexer<'a> {
-    input: Peekable<Chars<'a>>,
+pub struct Lexer {
+    input: Vec<char>,
+    index: usize,
 }
 
-impl<'a> Iterator for Lexer<'a> {
+impl Iterator for Lexer {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
-        match self.input.next() {
-            Some(c) => {
-                // whitespace
-                if is_whitespace(&c) {
-                    return self.next();
+        match self.advance() {
+            None => None,
+            // Operators
+            Some('+') => Some(Token::Plus),
+            Some('*') => Some(Token::Asterisk),
+            Some('<') => Some(Token::LessThan),
+            Some('>') => Some(Token::GreaterThan),
+            Some('(') => Some(Token::LeftParentheses),
+            Some(')') => Some(Token::RightParentheses),
+            Some(',') => Some(Token::Comma),
+            Some(';') => Some(Token::Semicolon),
+            Some('{') => Some(Token::LeftBrace),
+            Some('}') => Some(Token::RightBrace),
+            Some('=') => {
+                match self.peek() {
+                    Some('=') => {
+                        self.advance();
+                        Some(Token::Equal)
+                    }
+                    _ => Some(Token::Assign),
                 }
-
-                // control token
-                if let Some(token) = control_token(&c) {
-                    return Some(token);
+            }
+            Some('/') => {
+                match self.peek() {
+                    // comments
+                    Some('/') => {
+                        self.advance();
+                        while let Some(current_char) = self.advance() {
+                            if current_char == '\n' {
+                                break;
+                            }
+                        }
+                        self.next()
+                    }
+                    _ => Some(Token::Slash),
                 }
-
-                // literal or keyword
+            }
+            // Whitespace (must be checked after comments)
+            Some(' ') => self.next(),
+            Some('\t') => self.next(),
+            Some('\r') => self.next(),
+            Some('\n') => self.next(),
+            // literal, keyword, or int
+            Some(current_char) => {
                 let mut literal = String::new();
-                literal.push(c);
+                literal.push(current_char);
 
                 loop {
-                    match self.input.peek() {
+                    match self.peek() {
                         Some(next) => {
-                            if control_token(&next).is_some() || is_whitespace(&next) {
+                            if is_state_change_char(&next) {
                                 break;
                             }
                         }
                         None => break,
                     }
 
-                    if let Some(c) = self.input.next() {
-                        literal.push(c);
+                    if let Some(current_char) = self.advance() {
+                        literal.push(current_char);
                     }
                 }
 
 
-                // return keyword or litteral
+                // return keyword or literal
                 if keyword(&literal).is_some() {
                     keyword(&literal)
                 } else if literal.chars().all(|c| c.is_digit(10)) {
@@ -55,14 +80,44 @@ impl<'a> Iterator for Lexer<'a> {
                 } else {
                     Some(Token::Ident { literal: literal })
                 }
+
             }
-            None => None,
         }
     }
 }
 
-impl<'a> Lexer<'a> {
-    pub fn new(input: &'a str) -> Lexer<'a> {
-        Lexer { input: input.chars().peekable() }
+impl Lexer {
+    pub fn new(input: &str) -> Lexer {
+        Lexer {
+            input: input.chars().collect(),
+            index: 0,
+        }
     }
+
+    fn advance(&mut self) -> Option<char> {
+        if self.index >= self.input.len() {
+            None
+        } else {
+            self.index += 1;
+            Some(self.input[self.index - 1])
+        }
+    }
+
+    fn peek(&self) -> Option<char> {
+        if self.index >= self.input.len() {
+            None
+        } else {
+            Some(self.input[self.index])
+        }
+    }
+}
+
+/// A char that indicates that state is changing
+///
+/// TODO: if we ever need to add a new state, both this and the next
+/// function above need to be changed. That violates the open closed
+/// principle, investigate refactoring.
+fn is_state_change_char(c: &char) -> bool {
+    let blacklist = vec![' ', '\n', '+', ';', '=', ',', ')', '(', '}', '{'];
+    blacklist.contains(c)
 }
