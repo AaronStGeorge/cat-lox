@@ -1,12 +1,23 @@
 extern crate poople;
 
-use poople::lexer::Lexer;
+use std::io;
+
+use poople::repl;
 
 fn main() {
-    let input = "{ }();+,=let 90; fn() 忠犬ハチ公";
-    let lexer = Lexer::new(input);
+    println!("
+ _______  _______  _______     _______  _
+(  ____ )(  ___  )(  ___  )   (  ____ )( \\
+| (    )|| (   ) || (   ) |   | (    )|| (
+| (____)|| |   | || |   | |   | (____)|| |
+|  _____)| |   | || |   | |   |  _____)| |
+| (      | |   | || |   | |   | (      | |
+| )      | (___) || (___) | _ | )      | (____/\\
+|/       (_______)(_______)(_)|/       (_______/
 
-    for i in lexer {
-        println!("{:?}", i);
-    }
+The programing language that is a total piece of 💩.
+Poo.pl is free software with ABSOLUTELY NO WARRANTY.
+");
+
+    repl::start(io::stdin(), io::stdout()).unwrap();
 }
