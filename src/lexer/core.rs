@@ -63,6 +63,8 @@ impl Iterator for Lexer {
             Some('\n') => self.next(),
             // literal, keyword, or int
             Some(current_char) => {
+                // Todo: maybe it would be preferable to store a reference to a
+                // slice rather than storing a new heap allocated string.
                 let mut literal = String::new();
                 literal.push(current_char);
 

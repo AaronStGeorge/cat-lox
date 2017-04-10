@@ -2,11 +2,9 @@ use std::io::{self, Write};
 
 use lexer::Lexer;
 
-
 static PROMPT: &'static str = ">> ";
 
 pub fn start(stdin: io::Stdin, mut stdout: io::Stdout) -> io::Result<()> {
-
     loop {
         // Write prompt
         stdout.write(PROMPT.as_bytes())?;
