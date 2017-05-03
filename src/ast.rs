@@ -1,23 +1,23 @@
 use lexer::Token;
 
-trait Node {
+pub trait Node {
     fn token_literal(&self) -> String;
 }
 
-trait Expression : Node {
+pub trait Expression: Node {
     fn expression_node(&self) -> String;
 }
 
-trait Statement : Node {
+pub trait Statement: Node {
     fn statement_node(&self) -> String;
 }
 
-struct Program {
-    statements : Vec<Box<Statement>>,
+pub struct Program {
+    statements: Vec<Box<Statement>>,
 }
 
 impl Node for Program {
-    fn token_literal(&self) -> String{
+    fn token_literal(&self) -> String {
         if self.statements.len() > 0 {
             self.statements[0].statement_node()
         } else {
@@ -26,33 +26,39 @@ impl Node for Program {
     }
 }
 
-struct Identifier {
+pub struct Identifier {
     identifier_token: Token,
-    value: String
 }
 
 impl Node for Identifier {
     fn token_literal(&self) -> String {
-        "let".to_string()
+        format!("{:?}", self.identifier_token)
     }
 }
 
-struct LetStatement {
+impl Expression for Identifier {
+    fn expression_node(&self) -> String {
+        format!("{:?}", self.identifier_token)
+    }
+}
+
+// TODO: I assume this will need to be generic to get sizing
+pub struct LetStatement {
     // TODO: look into phantom types to get this properly typed, or just wait
     // until specialization is implemented.
-    let_token : Token,
-    identifier : Token, 
-    value : Expression,
+    let_token: Token,
+    identifier: Identifier,
+    value: Expression,
 }
 
 impl Node for LetStatement {
     fn token_literal(&self) -> String {
-        "let".to_string()
+        format!("{:?}", self.let_token)
     }
 }
 
 impl Statement for LetStatement {
     fn statement_node(&self) -> String {
-        "let".to_string()
+        format!("{:?}", self.let_token)
     }
 }

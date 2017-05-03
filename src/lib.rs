@@ -1,6 +1,7 @@
-pub mod ast;
-pub mod lexer;
 pub mod repl;
+
+mod ast;
+mod lexer;
 
 #[cfg(test)]
 mod tests {
