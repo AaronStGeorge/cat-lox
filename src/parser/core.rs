@@ -1,7 +1,7 @@
 use ast::*;
 use lexer::*;
 
-struct Parser {
+pub struct Parser {
     lexer: Lexer,
 
     currToken: Option<Token>,
