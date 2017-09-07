@@ -1,8 +1,8 @@
+pub mod ast_printer;
+pub mod ast;
+pub mod lexer;
+pub mod parser;
 pub mod repl;
-
-mod ast;
-mod lexer;
-mod parser;
 
 #[cfg(test)]
 mod tests {

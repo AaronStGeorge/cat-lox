@@ -23,24 +23,20 @@ impl Iterator for Lexer {
             Some(';') => Some(Token::Semicolon),
             Some('{') => Some(Token::LeftBrace),
             Some('}') => Some(Token::RightBrace),
-            Some('=') => {
-                match self.peek() {
-                    Some('=') => {
-                        self.advance();
-                        Some(Token::Equal)
-                    }
-                    _ => Some(Token::Assign),
+            Some('=') => match self.peek() {
+                Some('=') => {
+                    self.advance();
+                    Some(Token::Equal)
                 }
-            }
-            Some('!') => {
-                match self.peek() {
-                    Some('=') => {
-                        self.advance();
-                        Some(Token::NotEqual)
-                    }
-                    _ => Some(Token::Bang),
+                _ => Some(Token::Assign),
+            },
+            Some('!') => match self.peek() {
+                Some('=') => {
+                    self.advance();
+                    Some(Token::NotEqual)
                 }
-            }
+                _ => Some(Token::Bang),
+            },
             Some('/') => {
                 match self.peek() {
                     // comments
@@ -70,11 +66,9 @@ impl Iterator for Lexer {
 
                 loop {
                     match self.peek() {
-                        Some(next) => {
-                            if is_blacklisted(&next) {
-                                break;
-                            }
-                        }
+                        Some(next) => if is_blacklisted(&next) {
+                            break;
+                        },
                         None => break,
                     }
 
@@ -90,7 +84,6 @@ impl Iterator for Lexer {
                 } else {
                     Some(Token::Ident { literal: literal })
                 }
-
             }
         }
     }
@@ -128,7 +121,25 @@ impl Lexer {
 /// function above need to be changed. That violates the open closed
 /// principle, investigate refactoring.
 fn is_blacklisted(c: &char) -> bool {
-    let blacklist = vec!['+', '-', '*', '<', '>', '(', ')', ',', ';', '{', '}', '=', '!', '/',
-                         ' ', '\t', '\r', '\n'];
+    let blacklist = vec![
+        '+',
+        '-',
+        '*',
+        '<',
+        '>',
+        '(',
+        ')',
+        ',',
+        ';',
+        '{',
+        '}',
+        '=',
+        '!',
+        '/',
+        ' ',
+        '\t',
+        '\r',
+        '\n',
+    ];
     blacklist.contains(c)
 }

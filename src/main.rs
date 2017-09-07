@@ -5,7 +5,8 @@ use std::io;
 use poople::repl;
 
 fn main() {
-    println!("
+    println!(
+        "
  _______  _______  _______     _______  _
 (  ____ )(  ___  )(  ___  )   (  ____ )( \\
 | (    )|| (   ) || (   ) |   | (    )|| (
@@ -17,7 +18,8 @@ fn main() {
 
 The programing language that is a total piece of 💩.
 Poo.pl is free software with ABSOLUTELY NO WARRANTY.
-");
+"
+    );
 
     repl::start(io::stdin(), io::stdout()).unwrap();
 }
