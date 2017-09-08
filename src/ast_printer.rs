@@ -31,7 +31,7 @@ impl<'a> fmt::Display for ASTStringVisitor<'a> {
 }
 
 #[test]
-fn to_string_test() {
+fn to_string_test_1() {
     let one = Box::new(Expression::Literal("1".to_string()));
     let two = Box::new(Expression::Literal("2".to_string()));
     let negative_two = Box::new(Expression::Unary(Box::new(Token::Minus), two));
@@ -42,5 +42,17 @@ fn to_string_test() {
     assert_eq!(
         "(Grouping (Binary Plus (Literal 1) (Unary Minus (Literal 2))))".to_string(),
         ASTStringVisitor { expr: &ast }.to_string()
+    )
+}
+
+#[test]
+fn to_string_test_2() {
+    let mut expr = Box::new(Expression::Literal("1".to_string()));
+    let two = Box::new(Expression::Literal("2".to_string()));
+    expr = Box::new(Expression::Binary(expr, Box::new(Token::Plus), two));
+
+    assert_eq!(
+        "(Binary Plus (Literal 1) (Literal 2))".to_string(),
+        ASTStringVisitor { expr: &expr }.to_string()
     )
 }
