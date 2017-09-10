@@ -9,7 +9,7 @@ pub struct ASTStringVisitor<'a> {
 impl<'a> Visitor<String> for ASTStringVisitor<'a> {
     fn visit_expression(&self, e: &Expression) -> String {
         match *e {
-            Expression::Literal(ref s) => format!("(Literal {})", s),
+            Expression::Literal(ref t) => format!("(Literal {:?})", t),
             Expression::Unary(ref t, ref e) => {
                 format!("(Unary {:?} {})", t, self.visit_expression(e))
             }
@@ -19,7 +19,9 @@ impl<'a> Visitor<String> for ASTStringVisitor<'a> {
                 self.visit_expression(e),
                 self.visit_expression(e2)
             ),
-            Expression::Grouping(ref e) => format!("(Grouping {})", self.visit_expression(e)),
+            Expression::Grouping(ref e) => {
+                format!("(Grouping {})", self.visit_expression(e))
+            }
         }
     }
 }
@@ -32,27 +34,53 @@ impl<'a> fmt::Display for ASTStringVisitor<'a> {
 
 #[test]
 fn to_string_test_1() {
-    let one = Box::new(Expression::Literal("1".to_string()));
-    let two = Box::new(Expression::Literal("2".to_string()));
-    let negative_two = Box::new(Expression::Unary(Box::new(Token::Minus), two));
-    let one_plus_negative_two =
-        Box::new(Expression::Binary(one, Box::new(Token::Plus), negative_two));
-    let ast = Expression::Grouping(one_plus_negative_two);
+    let one_token = Token::Ident {
+        literal: "1".to_string(),
+    };
+    let two_token = Token::Ident {
+        literal: "2".to_string(),
+    };
+
+    let one_expr = Expression::Literal(Box::new(one_token));
+    let two_expr = Expression::Literal(Box::new(two_token));
+    let negative_two_expr =
+        Expression::Unary(Box::new(Token::Minus), Box::new(two_expr));
+    let one_plus_negative_two_expr = Expression::Binary(
+        Box::new(one_expr),
+        Box::new(Token::Plus),
+        Box::new(negative_two_expr),
+    );
+    let expr = Expression::Grouping(Box::new(one_plus_negative_two_expr));
 
     assert_eq!(
-        "(Grouping (Binary Plus (Literal 1) (Unary Minus (Literal 2))))".to_string(),
-        ASTStringVisitor { expr: &ast }.to_string()
+        "(Grouping (Binary Plus (Literal Ident { literal: \"1\" }) \
+         (Unary Minus (Literal Ident { literal: \"2\" }))))"
+            .to_string(),
+        ASTStringVisitor { expr: &expr }.to_string()
     )
 }
 
 #[test]
 fn to_string_test_2() {
-    let mut expr = Box::new(Expression::Literal("1".to_string()));
-    let two = Box::new(Expression::Literal("2".to_string()));
-    expr = Box::new(Expression::Binary(expr, Box::new(Token::Plus), two));
+    let one_token = Token::Ident {
+        literal: "1".to_string(),
+    };
+    let two_token = Token::Ident {
+        literal: "2".to_string(),
+    };
+    let two_expr = Expression::Literal(Box::new(two_token));
+
+    let mut expr = Expression::Literal(Box::new(one_token));
+    expr = Expression::Binary(
+        Box::new(expr),
+        Box::new(Token::Plus),
+        Box::new(two_expr),
+    );
 
     assert_eq!(
-        "(Binary Plus (Literal 1) (Literal 2))".to_string(),
+        "(Binary Plus (Literal Ident { literal: \"1\" }) (Literal \
+         Ident { literal: \"2\" }))"
+            .to_string(),
         ASTStringVisitor { expr: &expr }.to_string()
     )
 }
