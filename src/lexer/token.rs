@@ -14,7 +14,9 @@ pub enum Token {
     Slash,
     // Order
     LessThan,
+    LessEqual,
     GreaterThan,
+    GreaterEqual,
     // Equality
     Equal,
     NotEqual,

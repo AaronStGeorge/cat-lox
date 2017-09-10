@@ -161,3 +161,51 @@ fn lexer_test() {
 
     assert_eq!(results.len(), expected.len());
 }
+
+#[test]
+fn greater_equal_test() {
+    let input = "5 >= 10";
+
+    let expected = vec![
+        Token::Int {
+            literal: "5".to_string(),
+        },
+        Token::GreaterEqual,
+        Token::Int {
+            literal: "10".to_string(),
+        },
+    ];
+
+    let lexer = Lexer::new(input);
+    let results: Vec<Token> = lexer.collect();
+
+    for (i, tok) in results.iter().enumerate() {
+        assert_eq!(*tok, expected[i]);
+    }
+
+    assert_eq!(results.len(), expected.len());
+}
+
+#[test]
+fn less_equal_test() {
+    let input = "5 <= 10";
+
+    let expected = vec![
+        Token::Int {
+            literal: "5".to_string(),
+        },
+        Token::LessEqual,
+        Token::Int {
+            literal: "10".to_string(),
+        },
+    ];
+
+    let lexer = Lexer::new(input);
+    let results: Vec<Token> = lexer.collect();
+
+    for (i, tok) in results.iter().enumerate() {
+        assert_eq!(*tok, expected[i]);
+    }
+
+    assert_eq!(results.len(), expected.len());
+}

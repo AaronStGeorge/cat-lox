@@ -15,14 +15,26 @@ impl Iterator for Lexer {
             Some('+') => Some(Token::Plus),
             Some('-') => Some(Token::Minus),
             Some('*') => Some(Token::Asterisk),
-            Some('<') => Some(Token::LessThan),
-            Some('>') => Some(Token::GreaterThan),
             Some('(') => Some(Token::LeftParentheses),
             Some(')') => Some(Token::RightParentheses),
             Some(',') => Some(Token::Comma),
             Some(';') => Some(Token::Semicolon),
             Some('{') => Some(Token::LeftBrace),
             Some('}') => Some(Token::RightBrace),
+            Some('<') => match self.peek() {
+                Some('=') => {
+                    self.advance();
+                    Some(Token::LessEqual)
+                }
+                _ => Some(Token::LessThan),
+            },
+            Some('>') => match self.peek() {
+                Some('=') => {
+                    self.advance();
+                    Some(Token::GreaterEqual)
+                }
+                _ => Some(Token::GreaterThan),
+            },
             Some('=') => match self.peek() {
                 Some('=') => {
                     self.advance();
