@@ -1,20 +1,23 @@
 use ast::*;
 use lexer::*;
 
-pub struct Parser {
-    tokens: Vec<Token>,
+pub struct Parser<'a> {
+    tokens: &'a [Token],
     index: usize,
 }
 
-impl Parser {
-    pub fn new(input: &str) -> Parser {
+impl<'a> Parser<'a> {
+    pub fn new(input: &'a [Token]) -> Parser {
         return Parser {
-            tokens: Lexer::new(input).collect(),
+            tokens: input,
             index: 0,
         };
     }
 
-    // This should probably just be done with indexes
+    pub fn parse(&mut self) -> Result<Expression, &'static str> {
+        Ok(self.expression())
+    }
+
     fn advance(&mut self) -> Option<&Token> {
         if self.index >= self.tokens.len() {
             None
@@ -40,18 +43,109 @@ impl Parser {
         let mut expr = self.comparison();
 
         while let Some(t) = match self.peek() {
-            Some(t) if *t == Token::Equal || *t == Token::NotEqual => Some(t.clone()),
+            Some(t) if *t == Token::Equal || *t == Token::NotEqual => {
+                Some(t.clone())
+            }
             _ => None,
         } {
             self.advance();
             let right = self.comparison();
-            expr = Expression::Binary(Box::new(expr), Box::new(t), Box::new(right));
+            expr = Expression::Binary(
+                Box::new(expr),
+                Box::new(t),
+                Box::new(right),
+            );
         }
 
         expr
     }
 
     fn comparison(&mut self) -> Expression {
-        Expression::Literal("1".to_string())
+        let mut expr = self.addition();
+
+        while let Some(t) = match self.peek() {
+            Some(t)
+                if *t == Token::Equal || *t == Token::GreaterEqual ||
+                    *t == Token::LessThan ||
+                    *t == Token::LessEqual =>
+            {
+                Some(t.clone())
+            }
+            _ => None,
+        } {
+            self.advance();
+            let right = self.addition();
+            expr = Expression::Binary(
+                Box::new(expr),
+                Box::new(t),
+                Box::new(right),
+            );
+        }
+
+        expr
+    }
+
+    fn addition(&mut self) -> Expression {
+        let mut expr = self.multiplication();
+
+        while let Some(t) = match self.peek() {
+            Some(t) if *t == Token::Minus || *t == Token::Plus => {
+                Some(t.clone())
+            }
+            _ => None,
+        } {
+            self.advance();
+            let right = self.multiplication();
+            expr = Expression::Binary(
+                Box::new(expr),
+                Box::new(t),
+                Box::new(right),
+            );
+        }
+
+        expr
+    }
+
+    fn multiplication(&mut self) -> Expression {
+        let mut expr = self.unary();
+
+        while let Some(t) = match self.peek() {
+            Some(t) if *t == Token::Slash || *t == Token::Asterisk => {
+                Some(t.clone())
+            }
+            _ => None,
+        } {
+            self.advance();
+            let right = self.unary();
+            expr = Expression::Binary(
+                Box::new(expr),
+                Box::new(t),
+                Box::new(right),
+            );
+        }
+
+        expr
+    }
+
+    fn unary(&mut self) -> Expression {
+        if let Some(t) = match self.peek() {
+            Some(t) if *t == Token::Bang || *t == Token::Minus => {
+                Some(t.clone())
+            }
+            _ => None,
+        } {
+            self.advance();
+            let right = self.unary();
+            return Expression::Unary(Box::new(t), Box::new(right));
+        }
+
+        self.primary()
+    }
+
+    fn primary(&mut self) -> Expression {
+        match self.advance() {
+            Some(t) => Expression::Literal(Box::new(t.clone())),
+            None => unreachable!(),
+        }
     }
 }
