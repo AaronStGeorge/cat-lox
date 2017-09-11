@@ -1,6 +1,8 @@
 use std::io::{self, Write};
 
-use lexer::Lexer;
+use ast_printer::*;
+use lexer::*;
+use parser::*;
 
 static PROMPT: &'static str = ">> ";
 
@@ -15,10 +17,17 @@ pub fn start(stdin: io::Stdin, mut stdout: io::Stdout) -> io::Result<()> {
         stdin.read_line(&mut buffer)?;
 
         // Write the results of lexing
-        let lexer = Lexer::new(&buffer);
-        for i in lexer {
-            println!("{:?}", i);
+        let tokens: Vec<Token> = Lexer::new(&buffer).collect();
+
+        println!("Tokens ----");
+        for t in &tokens {
+            println!("{:?}", t);
         }
+
+        println!("AST ----");
+        let ast = Parser::new(&tokens).parse().unwrap();
+        println!("{}", ASTStringVisitor { expr: &ast });
+
         stdout.flush()?;
     }
 }
