@@ -144,6 +144,7 @@ impl<'a> Parser<'a> {
 
     fn primary(&mut self) -> Expression {
         match self.advance() {
+            Some(t) if *t == Token::RightBrace => unimplemented!(),
             Some(t) => Expression::Literal(Box::new(t.clone())),
             None => unreachable!(),
         }
