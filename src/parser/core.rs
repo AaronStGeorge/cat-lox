@@ -15,7 +15,7 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse(&mut self) -> Result<Expression, &'static str> {
-        Ok(self.expression())
+        self.expression()
     }
 
     fn advance(&mut self) -> Option<&Token> {
@@ -35,12 +35,12 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn expression(&mut self) -> Expression {
+    fn expression(&mut self) -> Result<Expression, &'static str> {
         self.equality()
     }
 
-    fn equality(&mut self) -> Expression {
-        let mut expr = self.comparison();
+    fn equality(&mut self) -> Result<Expression, &'static str> {
+        let mut expr = self.comparison()?;
 
         while let Some(t) = match self.peek() {
             Some(t) if *t == Token::Equal || *t == Token::NotEqual => {
@@ -49,7 +49,7 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             self.advance();
-            let right = self.comparison();
+            let right = self.comparison()?;
             expr = Expression::Binary(
                 Box::new(expr),
                 Box::new(t),
@@ -57,11 +57,11 @@ impl<'a> Parser<'a> {
             );
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn comparison(&mut self) -> Expression {
-        let mut expr = self.addition();
+    fn comparison(&mut self) -> Result<Expression, &'static str> {
+        let mut expr = self.addition()?;
 
         while let Some(t) = match self.peek() {
             Some(t)
@@ -74,7 +74,7 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             self.advance();
-            let right = self.addition();
+            let right = self.addition()?;
             expr = Expression::Binary(
                 Box::new(expr),
                 Box::new(t),
@@ -82,11 +82,11 @@ impl<'a> Parser<'a> {
             );
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn addition(&mut self) -> Expression {
-        let mut expr = self.multiplication();
+    fn addition(&mut self) -> Result<Expression, &'static str> {
+        let mut expr = self.multiplication()?;
 
         while let Some(t) = match self.peek() {
             Some(t) if *t == Token::Minus || *t == Token::Plus => {
@@ -95,7 +95,7 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             self.advance();
-            let right = self.multiplication();
+            let right = self.multiplication()?;
             expr = Expression::Binary(
                 Box::new(expr),
                 Box::new(t),
@@ -103,11 +103,11 @@ impl<'a> Parser<'a> {
             );
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn multiplication(&mut self) -> Expression {
-        let mut expr = self.unary();
+    fn multiplication(&mut self) -> Result<Expression, &'static str> {
+        let mut expr = self.unary()?;
 
         while let Some(t) = match self.peek() {
             Some(t) if *t == Token::Slash || *t == Token::Asterisk => {
@@ -116,7 +116,7 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             self.advance();
-            let right = self.unary();
+            let right = self.unary()?;
             expr = Expression::Binary(
                 Box::new(expr),
                 Box::new(t),
@@ -124,10 +124,10 @@ impl<'a> Parser<'a> {
             );
         }
 
-        expr
+        Ok(expr)
     }
 
-    fn unary(&mut self) -> Expression {
+    fn unary(&mut self) -> Result<Expression, &'static str> {
         if let Some(t) = match self.peek() {
             Some(t) if *t == Token::Bang || *t == Token::Minus => {
                 Some(t.clone())
@@ -135,17 +135,17 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             self.advance();
-            let right = self.unary();
-            return Expression::Unary(Box::new(t), Box::new(right));
+            let right = self.unary()?;
+            return Ok(Expression::Unary(Box::new(t), Box::new(right)));
         }
 
         self.primary()
     }
 
-    fn primary(&mut self) -> Expression {
+    fn primary(&mut self) -> Result<Expression, &'static str> {
         match self.advance() {
             Some(t) if *t == Token::RightBrace => unimplemented!(),
-            Some(t) => Expression::Literal(Box::new(t.clone())),
+            Some(t) => Ok(Expression::Literal(Box::new(t.clone()))),
             None => unreachable!(),
         }
     }
