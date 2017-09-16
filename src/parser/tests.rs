@@ -76,3 +76,61 @@ fn parser_test_1() {
         ASTStringVisitor { expr: &ast }.to_string()
     );
 }
+
+#[test]
+fn parser_test_2() {
+    // Test for the results of parsing the following program:
+    // 1 * (2 + -3)
+
+    let one_token = Token::Int {
+        literal: "1".to_string(),
+    };
+    let two_token = Token::Int {
+        literal: "2".to_string(),
+    };
+    let three_token = Token::Int {
+        literal: "2".to_string(),
+    };
+
+    let tokens = vec![
+        one_token.clone(),
+        Token::Asterisk,
+        Token::LeftParentheses,
+        two_token.clone(),
+        Token::Plus,
+        Token::Minus,
+        three_token.clone(),
+        Token::RightParentheses,
+    ];
+
+    let one_expr = Expression::Literal(Box::new(one_token));
+    let two_expr = Expression::Literal(Box::new(two_token));
+    let three_expr = Expression::Literal(Box::new(three_token));
+
+    let neg_three =
+        Expression::Unary(Box::new(Token::Minus), Box::new(three_expr));
+
+    let two_plus_neg_three = Expression::Binary(
+        Box::new(two_expr),
+        Box::new(Token::Plus),
+        Box::new(neg_three),
+    );
+
+    let two_neg_three_grouping =
+        Expression::Grouping(Box::new(two_plus_neg_three));
+
+    let expected_ast = Expression::Binary(
+        Box::new(one_expr),
+        Box::new(Token::Asterisk),
+        Box::new(two_neg_three_grouping),
+    );
+
+    let ast = Parser::new(&tokens).parse().unwrap();
+
+    assert_eq!(
+        ASTStringVisitor {
+            expr: &expected_ast,
+        }.to_string(),
+        ASTStringVisitor { expr: &ast }.to_string()
+    );
+}

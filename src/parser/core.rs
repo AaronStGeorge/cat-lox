@@ -143,10 +143,38 @@ impl<'a> Parser<'a> {
     }
 
     fn primary(&mut self) -> Result<Expression, &'static str> {
-        match self.advance() {
-            Some(t) if *t == Token::RightBrace => unimplemented!(),
-            Some(t) => Ok(Expression::Literal(Box::new(t.clone()))),
-            None => unreachable!(),
+        // TODO: this is super ugly. It's here to be able to get an owned
+        // version of t and prevent a mutable reference to *self being borrowed
+        // for the scope of the whole function. Interior mutability primitives
+        // like Cell might be able to help here.
+        if let Some(t) = match self.advance() {
+            Some(t) => Some(t.clone()),
+            _ => None,
+        } {
+            match t {
+                Token::LeftParentheses => {
+                    let expr = self.expression()?;
+
+                    // Same grossness if self.advance didn't need to take a
+                    // mutable reference this could be a lot nicer.
+                    if let Some(_) = match self.advance() {
+                        Some(t) if *t == Token::RightParentheses => {
+                            Some(t.clone())
+                        }
+                        _ => None,
+                    } {
+                        Ok(Expression::Grouping(Box::new(expr)))
+                    } else {
+                        Err("There should be a fucking right parentheses here!")
+                    }
+                }
+                // TODO: this will match all tokens including things that don't
+                // make any sense here like ")". This should only accept a
+                // portion of what it does.
+                _ => Ok(Expression::Literal(Box::new(t.clone()))),
+            }
+        } else {
+            Err("There should be some shit here!")
         }
     }
 }
