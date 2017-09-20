@@ -140,26 +140,27 @@ impl<'a> Parser<'a> {
     }
 
     fn primary(&self) -> Result<Expression, &'static str> {
-        match self.advance() {
-            Some(t) if *t == Token::LeftParentheses => {
-                let expr = self.expression()?;
-
-                // Same grossness if self.advance didn't need to take a
-                // mutable reference this could be a lot nicer.
-                if let Some(_) = match self.advance() {
-                    Some(t) if *t == Token::RightParentheses => Some(t.clone()),
-                    _ => None,
-                } {
-                    Ok(Expression::Grouping(Box::new(expr)))
-                } else {
-                    Err("There should be a fucking right parentheses here!")
+        if let Some(t) = self.advance() {
+            match *t {
+                Token::LeftParentheses => {
+                    let expr = self.expression()?;
+                    match self.advance() {
+                        Some(t) if *t == Token::RightParentheses => {
+                            Ok(Expression::Grouping(Box::new(expr)))
+                        }
+                        _ => Err(
+                            "There should be a fucking right parentheses here!",
+                        ),
+                    }
                 }
+                Token::Int { literal: _ } |
+                Token::Ident { literal: _ } |
+                Token::True |
+                Token::False => Ok(Expression::Literal(Box::new(t.clone()))),
+                _ => Err("What the fuck is this shit!"),
             }
-            // TODO: this will match all tokens including things that don't
-            // make any sense here like ")". This should only accept a
-            // portion of what it does.
-            Some(t) => Ok(Expression::Literal(Box::new(t.clone()))),
-            None => Err("There should be some shit here!"),
+        } else {
+            Err("There should be some shit here!")
         }
     }
 }
