@@ -69,7 +69,7 @@ impl Iterator for Lexer {
             Some('\t') => self.next(),
             Some('\r') => self.next(),
             Some('\n') => self.next(),
-            // literal, keyword, or int
+            // literal, keyword, or number
             Some(current_char) => {
                 // Todo: maybe it would be preferable to store a reference to a
                 // slice rather than storing a new heap allocated string.
@@ -91,10 +91,8 @@ impl Iterator for Lexer {
 
                 if keyword(&literal).is_some() {
                     keyword(&literal)
-                } else if literal.chars().all(|c| c.is_digit(10)) {
-                    Some(Token::Int {
-                        literal: literal.parse::<i64>().unwrap(),
-                    })
+                } else if literal.chars().all(|c| c.is_digit(10) || c == '.') {
+                    Some(Token::Number(literal.parse::<f64>().unwrap()))
                 } else {
                     Some(Token::Ident { literal: literal })
                 }

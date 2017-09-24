@@ -153,7 +153,7 @@ impl<'a> Parser<'a> {
                         ),
                     }
                 }
-                Token::Int { literal: _ } |
+                Token::Number(_) |
                 Token::Ident { literal: _ } |
                 Token::True |
                 Token::False => Ok(Expression::Literal(Box::new(t.clone()))),

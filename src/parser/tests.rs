@@ -8,18 +8,10 @@ fn parser_test_1() {
     // Test for the results of parsing the following program:
     // 1 * 2 + -3 >= 4 != true
 
-    let one_token = Token::Int {
-        literal: 1,
-    };
-    let two_token = Token::Int {
-        literal: 2,
-    };
-    let three_token = Token::Int {
-        literal: 2,
-    };
-    let four_token = Token::Int {
-        literal: 2,
-    };
+    let one_token = Token::Number(1.0);
+    let two_token = Token::Number(2.0);
+    let three_token = Token::Number(2.0);
+    let four_token = Token::Number(2.0);
 
     let tokens = vec![
         one_token.clone(),
@@ -82,15 +74,9 @@ fn parser_test_2() {
     // Test for the results of parsing the following program:
     // 1 * (2 + -3)
 
-    let one_token = Token::Int {
-        literal: 1,
-    };
-    let two_token = Token::Int {
-        literal: 2,
-    };
-    let three_token = Token::Int {
-        literal: 2,
-    };
+    let one_token = Token::Number(1.0);
+    let two_token = Token::Number(2.0);
+    let three_token = Token::Number(2.0);
 
     let tokens = vec![
         one_token.clone(),

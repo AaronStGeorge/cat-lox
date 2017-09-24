@@ -36,18 +36,14 @@ fn lexer_test() {
             literal: "five".to_string(),
         },
         Token::Assign,
-        Token::Int {
-            literal: 5,
-        },
+        Token::Number(5.0),
         Token::Semicolon,
         Token::Let,
         Token::Ident {
             literal: "ten".to_string(),
         },
         Token::Assign,
-        Token::Int {
-            literal: 10,
-        },
+        Token::Number(10.0),
         Token::Semicolon,
         Token::Let,
         Token::Ident {
@@ -97,31 +93,19 @@ fn lexer_test() {
         Token::Minus,
         Token::Slash,
         Token::Asterisk,
-        Token::Int {
-            literal: 5,
-        },
+        Token::Number(5.0),
         Token::Semicolon,
-        Token::Int {
-            literal: 5,
-        },
+        Token::Number(5.0),
         Token::LessThan,
-        Token::Int {
-            literal: 10,
-        },
+        Token::Number(10.0),
         Token::GreaterThan,
-        Token::Int {
-            literal: 5,
-        },
+        Token::Number(5.0),
         Token::Semicolon,
         Token::If,
         Token::LeftParentheses,
-        Token::Int {
-            literal: 5,
-        },
+        Token::Number(5.0),
         Token::LessThan,
-        Token::Int {
-            literal: 10,
-        },
+        Token::Number(10.0),
         Token::RightParentheses,
         Token::LeftBrace,
         Token::Return,
@@ -134,21 +118,13 @@ fn lexer_test() {
         Token::False,
         Token::Semicolon,
         Token::RightBrace,
-        Token::Int {
-            literal: 10,
-        },
+        Token::Number(10.0),
         Token::Equal,
-        Token::Int {
-            literal: 10,
-        },
+        Token::Number(10.0),
         Token::Semicolon,
-        Token::Int {
-            literal: 10,
-        },
+        Token::Number(10.0),
         Token::NotEqual,
-        Token::Int {
-            literal: 9,
-        },
+        Token::Number(9.0),
         Token::Semicolon,
     ];
 
@@ -166,15 +142,8 @@ fn lexer_test() {
 fn greater_equal_test() {
     let input = "5 >= 10";
 
-    let expected = vec![
-        Token::Int {
-            literal: 5,
-        },
-        Token::GreaterEqual,
-        Token::Int {
-            literal: 10,
-        },
-    ];
+    let expected =
+        vec![Token::Number(5.0), Token::GreaterEqual, Token::Number(10.0)];
 
     let lexer = Lexer::new(input);
     let results: Vec<Token> = lexer.collect();
@@ -190,15 +159,8 @@ fn greater_equal_test() {
 fn less_equal_test() {
     let input = "5 <= 10";
 
-    let expected = vec![
-        Token::Int {
-            literal: 5,
-        },
-        Token::LessEqual,
-        Token::Int {
-            literal: 10,
-        },
-    ];
+    let expected =
+        vec![Token::Number(5.0), Token::LessEqual, Token::Number(10.0)];
 
     let lexer = Lexer::new(input);
     let results: Vec<Token> = lexer.collect();
