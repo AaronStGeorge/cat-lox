@@ -155,6 +155,7 @@ impl<'a> Parser<'a> {
                 }
                 Token::Number(_) |
                 Token::Ident { literal: _ } |
+                Token::Nil |
                 Token::True |
                 Token::False => Ok(Expression::Literal(Box::new(t.clone()))),
                 _ => Err("What the fuck is this shit!"),

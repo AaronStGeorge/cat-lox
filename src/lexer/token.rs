@@ -5,6 +5,7 @@ pub enum Token {
     // Identifiers + literals
     Ident { literal: String },
     Number(f64),
+    Nil,
     // Operators
     Assign,
     Asterisk,
@@ -48,6 +49,7 @@ pub fn keyword(s: &str) -> Option<Token> {
         "return" => Some(Token::Return),
         "true" => Some(Token::True),
         "false" => Some(Token::False),
+        "nil" => Some(Token::Nil),
         &_ => None,
     }
 }

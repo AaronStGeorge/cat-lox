@@ -171,3 +171,25 @@ fn less_equal_test() {
 
     assert_eq!(results.len(), expected.len());
 }
+
+#[test]
+fn nil_test() {
+    let input = "a = nil";
+
+    let expected = vec![
+        Token::Ident {
+            literal: "a".to_string(),
+        },
+        Token::Assign,
+        Token::Nil,
+    ];
+
+    let lexer = Lexer::new(input);
+    let results: Vec<Token> = lexer.collect();
+
+    for (i, tok) in results.iter().enumerate() {
+        assert_eq!(*tok, expected[i]);
+    }
+
+    assert_eq!(results.len(), expected.len());
+}
