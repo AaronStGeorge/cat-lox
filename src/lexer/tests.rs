@@ -37,7 +37,7 @@ fn lexer_test() {
         },
         Token::Assign,
         Token::Int {
-            literal: "5".to_string(),
+            literal: 5,
         },
         Token::Semicolon,
         Token::Let,
@@ -46,7 +46,7 @@ fn lexer_test() {
         },
         Token::Assign,
         Token::Int {
-            literal: "10".to_string(),
+            literal: 10,
         },
         Token::Semicolon,
         Token::Let,
@@ -98,29 +98,29 @@ fn lexer_test() {
         Token::Slash,
         Token::Asterisk,
         Token::Int {
-            literal: "5".to_string(),
+            literal: 5,
         },
         Token::Semicolon,
         Token::Int {
-            literal: "5".to_string(),
+            literal: 5,
         },
         Token::LessThan,
         Token::Int {
-            literal: "10".to_string(),
+            literal: 10,
         },
         Token::GreaterThan,
         Token::Int {
-            literal: "5".to_string(),
+            literal: 5,
         },
         Token::Semicolon,
         Token::If,
         Token::LeftParentheses,
         Token::Int {
-            literal: "5".to_string(),
+            literal: 5,
         },
         Token::LessThan,
         Token::Int {
-            literal: "10".to_string(),
+            literal: 10,
         },
         Token::RightParentheses,
         Token::LeftBrace,
@@ -135,19 +135,19 @@ fn lexer_test() {
         Token::Semicolon,
         Token::RightBrace,
         Token::Int {
-            literal: "10".to_string(),
+            literal: 10,
         },
         Token::Equal,
         Token::Int {
-            literal: "10".to_string(),
+            literal: 10,
         },
         Token::Semicolon,
         Token::Int {
-            literal: "10".to_string(),
+            literal: 10,
         },
         Token::NotEqual,
         Token::Int {
-            literal: "9".to_string(),
+            literal: 9,
         },
         Token::Semicolon,
     ];
@@ -168,11 +168,11 @@ fn greater_equal_test() {
 
     let expected = vec![
         Token::Int {
-            literal: "5".to_string(),
+            literal: 5,
         },
         Token::GreaterEqual,
         Token::Int {
-            literal: "10".to_string(),
+            literal: 10,
         },
     ];
 
@@ -192,11 +192,11 @@ fn less_equal_test() {
 
     let expected = vec![
         Token::Int {
-            literal: "5".to_string(),
+            literal: 5,
         },
         Token::LessEqual,
         Token::Int {
-            literal: "10".to_string(),
+            literal: 10,
         },
     ];
 

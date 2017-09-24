@@ -4,7 +4,7 @@ pub enum Token {
     Illegal,
     // Identifiers + literals
     Ident { literal: String },
-    Int { literal: String },
+    Int { literal: i64 },
     // Operators
     Assign,
     Asterisk,

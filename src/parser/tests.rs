@@ -9,16 +9,16 @@ fn parser_test_1() {
     // 1 * 2 + -3 >= 4 != true
 
     let one_token = Token::Int {
-        literal: "1".to_string(),
+        literal: 1,
     };
     let two_token = Token::Int {
-        literal: "2".to_string(),
+        literal: 2,
     };
     let three_token = Token::Int {
-        literal: "2".to_string(),
+        literal: 2,
     };
     let four_token = Token::Int {
-        literal: "2".to_string(),
+        literal: 2,
     };
 
     let tokens = vec![
@@ -83,13 +83,13 @@ fn parser_test_2() {
     // 1 * (2 + -3)
 
     let one_token = Token::Int {
-        literal: "1".to_string(),
+        literal: 1,
     };
     let two_token = Token::Int {
-        literal: "2".to_string(),
+        literal: 2,
     };
     let three_token = Token::Int {
-        literal: "2".to_string(),
+        literal: 2,
     };
 
     let tokens = vec![

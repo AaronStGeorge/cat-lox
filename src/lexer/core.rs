@@ -92,7 +92,9 @@ impl Iterator for Lexer {
                 if keyword(&literal).is_some() {
                     keyword(&literal)
                 } else if literal.chars().all(|c| c.is_digit(10)) {
-                    Some(Token::Int { literal: literal })
+                    Some(Token::Int {
+                        literal: literal.parse::<i64>().unwrap(),
+                    })
                 } else {
                     Some(Token::Ident { literal: literal })
                 }
