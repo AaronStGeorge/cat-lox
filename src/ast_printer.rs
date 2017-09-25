@@ -18,9 +18,7 @@ impl<'a> Visitor<String> for ASTStringVisitor<'a> {
                 self.visit_expression(e),
                 self.visit_expression(e2)
             ),
-            Expression::Grouping(ref e) => {
-                format!("(Grouping {})", self.visit_expression(e))
-            }
+            Expression::Grouping(ref e) => format!("(Grouping {})", self.visit_expression(e)),
         }
     }
 }
@@ -47,8 +45,7 @@ mod tests {
 
         let one_expr = Expression::Literal(Box::new(one_token));
         let two_expr = Expression::Literal(Box::new(two_token));
-        let negative_two_expr =
-            Expression::Unary(Box::new(Token::Minus), Box::new(two_expr));
+        let negative_two_expr = Expression::Unary(Box::new(Token::Minus), Box::new(two_expr));
         let one_plus_negative_two_expr = Expression::Binary(
             Box::new(one_expr),
             Box::new(Token::Plus),
@@ -75,11 +72,7 @@ mod tests {
         let two_expr = Expression::Literal(Box::new(two_token));
 
         let mut expr = Expression::Literal(Box::new(one_token));
-        expr = Expression::Binary(
-            Box::new(expr),
-            Box::new(Token::Plus),
-            Box::new(two_expr),
-        );
+        expr = Expression::Binary(Box::new(expr), Box::new(Token::Plus), Box::new(two_expr));
 
         assert_eq!(
             "(Binary Plus (Literal Ident { literal: \"1\" }) (Literal \

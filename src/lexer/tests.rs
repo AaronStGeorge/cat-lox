@@ -142,8 +142,7 @@ fn lexer_test() {
 fn greater_equal_test() {
     let input = "5 >= 10";
 
-    let expected =
-        vec![Token::Number(5.0), Token::GreaterEqual, Token::Number(10.0)];
+    let expected = vec![Token::Number(5.0), Token::GreaterEqual, Token::Number(10.0)];
 
     let lexer = Lexer::new(input);
     let results: Vec<Token> = lexer.collect();
@@ -159,8 +158,7 @@ fn greater_equal_test() {
 fn less_equal_test() {
     let input = "5 <= 10";
 
-    let expected =
-        vec![Token::Number(5.0), Token::LessEqual, Token::Number(10.0)];
+    let expected = vec![Token::Number(5.0), Token::LessEqual, Token::Number(10.0)];
 
     let lexer = Lexer::new(input);
     let results: Vec<Token> = lexer.collect();

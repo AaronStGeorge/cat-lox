@@ -46,17 +46,11 @@ impl<'a> Parser<'a> {
         let mut expr = self.comparison()?;
 
         while let Some(t) = match self.peek() {
-            Some(t) if *t == Token::Equal || *t == Token::NotEqual => {
-                self.advance()
-            }
+            Some(t) if *t == Token::Equal || *t == Token::NotEqual => self.advance(),
             _ => None,
         } {
             let right = self.comparison()?;
-            expr = Expression::Binary(
-                Box::new(expr),
-                Box::new(t.clone()),
-                Box::new(right),
-            );
+            expr = Expression::Binary(Box::new(expr), Box::new(t.clone()), Box::new(right));
         }
 
         Ok(expr)
@@ -67,8 +61,7 @@ impl<'a> Parser<'a> {
 
         while let Some(t) = match self.peek() {
             Some(t)
-                if *t == Token::Equal || *t == Token::GreaterEqual ||
-                    *t == Token::LessThan ||
+                if *t == Token::Equal || *t == Token::GreaterEqual || *t == Token::LessThan ||
                     *t == Token::LessEqual =>
             {
                 self.advance()
@@ -76,11 +69,7 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             let right = self.addition()?;
-            expr = Expression::Binary(
-                Box::new(expr),
-                Box::new(t.clone()),
-                Box::new(right),
-            );
+            expr = Expression::Binary(Box::new(expr), Box::new(t.clone()), Box::new(right));
         }
 
         Ok(expr)
@@ -90,17 +79,11 @@ impl<'a> Parser<'a> {
         let mut expr = self.multiplication()?;
 
         while let Some(t) = match self.peek() {
-            Some(t) if *t == Token::Minus || *t == Token::Plus => {
-                self.advance()
-            }
+            Some(t) if *t == Token::Minus || *t == Token::Plus => self.advance(),
             _ => None,
         } {
             let right = self.multiplication()?;
-            expr = Expression::Binary(
-                Box::new(expr),
-                Box::new(t.clone()),
-                Box::new(right),
-            );
+            expr = Expression::Binary(Box::new(expr), Box::new(t.clone()), Box::new(right));
         }
 
         Ok(expr)
@@ -110,17 +93,11 @@ impl<'a> Parser<'a> {
         let mut expr = self.unary()?;
 
         while let Some(t) = match self.peek() {
-            Some(t) if *t == Token::Slash || *t == Token::Asterisk => {
-                self.advance()
-            }
+            Some(t) if *t == Token::Slash || *t == Token::Asterisk => self.advance(),
             _ => None,
         } {
             let right = self.unary()?;
-            expr = Expression::Binary(
-                Box::new(expr),
-                Box::new(t.clone()),
-                Box::new(right),
-            );
+            expr = Expression::Binary(Box::new(expr), Box::new(t.clone()), Box::new(right));
         }
 
         Ok(expr)
@@ -131,9 +108,7 @@ impl<'a> Parser<'a> {
             Some(t) if *t == Token::Bang || *t == Token::Minus => {
                 self.advance();
                 let right = self.unary()?;
-                return Ok(
-                    Expression::Unary(Box::new(t.clone()), Box::new(right)),
-                );
+                return Ok(Expression::Unary(Box::new(t.clone()), Box::new(right)));
             }
             _ => self.primary(),
         }
@@ -148,9 +123,7 @@ impl<'a> Parser<'a> {
                         Some(t) if *t == Token::RightParentheses => {
                             Ok(Expression::Grouping(Box::new(expr)))
                         }
-                        _ => Err(
-                            "There should be a fucking right parentheses here!",
-                        ),
+                        _ => Err("There should be a fucking right parentheses here!"),
                     }
                 }
                 Token::Number(_) |

@@ -32,8 +32,7 @@ fn parser_test_1() {
     let four_expr = Expression::Literal(Box::new(four_token));
     let true_expr = Expression::Literal(Box::new(Token::True));
 
-    let neg_three =
-        Expression::Unary(Box::new(Token::Minus), Box::new(three_expr));
+    let neg_three = Expression::Unary(Box::new(Token::Minus), Box::new(three_expr));
 
     let one_star_two = Expression::Binary(
         Box::new(one_expr),
@@ -93,8 +92,7 @@ fn parser_test_2() {
     let two_expr = Expression::Literal(Box::new(two_token));
     let three_expr = Expression::Literal(Box::new(three_token));
 
-    let neg_three =
-        Expression::Unary(Box::new(Token::Minus), Box::new(three_expr));
+    let neg_three = Expression::Unary(Box::new(Token::Minus), Box::new(three_expr));
 
     let two_plus_neg_three = Expression::Binary(
         Box::new(two_expr),
@@ -102,8 +100,7 @@ fn parser_test_2() {
         Box::new(neg_three),
     );
 
-    let two_neg_three_grouping =
-        Expression::Grouping(Box::new(two_plus_neg_three));
+    let two_neg_three_grouping = Expression::Grouping(Box::new(two_plus_neg_three));
 
     let expected_ast = Expression::Binary(
         Box::new(one_expr),
