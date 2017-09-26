@@ -3,6 +3,7 @@ use std::io::{self, Write};
 use ast_printer::*;
 use lexer::*;
 use parser::*;
+use interpreter::*;
 
 static PROMPT: &'static str = ">> ";
 
@@ -27,6 +28,12 @@ pub fn start(stdin: io::Stdin, mut stdout: io::Stdout) -> io::Result<()> {
         println!("AST ----");
         let ast = Parser::new(&tokens).parse().unwrap();
         println!("{}", ASTStringVisitor { expr: &ast });
+
+        println!("Output ----");
+        match Interpreter::new(&ast).interpret() {
+            Ok(result) => println!("{}", result),
+            Err(err) => println!("Run Time Error: {}", err),
+        }
 
         stdout.flush()?;
     }
