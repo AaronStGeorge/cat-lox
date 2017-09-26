@@ -117,3 +117,32 @@ fn parser_test_2() {
         ASTStringVisitor { expr: &ast }.to_string()
     );
 }
+
+#[test]
+fn parser_test_3() {
+    // Test for the results of parsing the following program:
+    // 1 > 2
+
+    let one_token = Token::Number(1.0);
+    let two_token = Token::Number(2.0);
+
+    let tokens = vec![one_token.clone(), Token::GreaterThan, two_token.clone()];
+
+    let one_expr = Expression::Literal(Box::new(one_token));
+    let two_expr = Expression::Literal(Box::new(two_token));
+
+    let expected_ast = Expression::Binary(
+        Box::new(one_expr),
+        Box::new(Token::GreaterThan),
+        Box::new(two_expr),
+    );
+
+    let ast = Parser::new(&tokens).parse().unwrap();
+
+    assert_eq!(
+        ASTStringVisitor {
+            expr: &expected_ast,
+        }.to_string(),
+        ASTStringVisitor { expr: &ast }.to_string()
+    );
+}
