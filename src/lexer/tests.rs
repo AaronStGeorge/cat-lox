@@ -8,6 +8,9 @@ fn lexer_test() {
 
     let five = 5;
     let ten = 10;
+    let a_string = \"
+    blaaaa
+    \";
 
     let add = fn(x, y) {
         x + y; // Comments ++** 900) () fuck yeah!!
@@ -44,6 +47,13 @@ fn lexer_test() {
         },
         Token::Assign,
         Token::Number(10.0),
+        Token::Semicolon,
+        Token::Let,
+        Token::Ident {
+            literal: "a_string".to_string(),
+        },
+        Token::Assign,
+        Token::LoxString("\n    blaaaa\n    ".to_string()),
         Token::Semicolon,
         Token::Let,
         Token::Ident {
@@ -181,6 +191,22 @@ fn nil_test() {
         Token::Assign,
         Token::Nil,
     ];
+
+    let lexer = Lexer::new(input);
+    let results: Vec<Token> = lexer.collect();
+
+    for (i, tok) in results.iter().enumerate() {
+        assert_eq!(*tok, expected[i]);
+    }
+
+    assert_eq!(results.len(), expected.len());
+}
+
+#[test]
+fn lox_string_test() {
+    let input = "\" bla! \"";
+
+    let expected = vec![Token::LoxString(" bla! ".to_string())];
 
     let lexer = Lexer::new(input);
     let results: Vec<Token> = lexer.collect();

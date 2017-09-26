@@ -64,6 +64,16 @@ impl Iterator for Lexer {
                     _ => Some(Token::Slash),
                 }
             }
+            Some('"') => {
+                let mut literal = String::new();
+                while let Some(current_char) = self.advance() {
+                    if current_char == '"' {
+                        break;
+                    }
+                    literal.push(current_char);
+                }
+                Some(Token::LoxString(literal))
+            }
             // Whitespace (must be checked after comments)
             Some(' ') => self.next(),
             Some('\t') => self.next(),

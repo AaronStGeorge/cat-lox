@@ -130,6 +130,7 @@ impl<'a> Parser<'a> {
                 Token::Ident { literal: _ } |
                 Token::Nil |
                 Token::True |
+                Token::LoxString(_) |
                 Token::False => Ok(Expression::Literal(t.clone())),
                 _ => Err("What the fuck is this shit!"),
             }

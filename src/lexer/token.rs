@@ -4,6 +4,7 @@ pub enum Token {
     Illegal,
     // Identifiers + literals
     Ident { literal: String },
+    LoxString(String),
     Number(f64),
     Nil,
     // Operators
