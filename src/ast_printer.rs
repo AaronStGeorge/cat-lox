@@ -43,14 +43,11 @@ mod tests {
             literal: "2".to_string(),
         };
 
-        let one_expr = Expression::Literal(Box::new(one_token));
-        let two_expr = Expression::Literal(Box::new(two_token));
-        let negative_two_expr = Expression::Unary(Box::new(Token::Minus), Box::new(two_expr));
-        let one_plus_negative_two_expr = Expression::Binary(
-            Box::new(one_expr),
-            Box::new(Token::Plus),
-            Box::new(negative_two_expr),
-        );
+        let one_expr = Expression::Literal(one_token);
+        let two_expr = Expression::Literal(two_token);
+        let negative_two_expr = Expression::Unary(Token::Minus, Box::new(two_expr));
+        let one_plus_negative_two_expr =
+            Expression::Binary(Box::new(one_expr), Token::Plus, Box::new(negative_two_expr));
         let expr = Expression::Grouping(Box::new(one_plus_negative_two_expr));
 
         assert_eq!(
@@ -69,10 +66,10 @@ mod tests {
         let two_token = Token::Ident {
             literal: "2".to_string(),
         };
-        let two_expr = Expression::Literal(Box::new(two_token));
+        let two_expr = Expression::Literal(two_token);
 
-        let mut expr = Expression::Literal(Box::new(one_token));
-        expr = Expression::Binary(Box::new(expr), Box::new(Token::Plus), Box::new(two_expr));
+        let mut expr = Expression::Literal(one_token);
+        expr = Expression::Binary(Box::new(expr), Token::Plus, Box::new(two_expr));
 
         assert_eq!(
             "(Binary Plus (Literal Ident { literal: \"1\" }) (Literal \

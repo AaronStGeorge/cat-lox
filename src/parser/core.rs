@@ -50,7 +50,7 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             let right = self.comparison()?;
-            expr = Expression::Binary(Box::new(expr), Box::new(t.clone()), Box::new(right));
+            expr = Expression::Binary(Box::new(expr), t.clone(), Box::new(right));
         }
 
         Ok(expr)
@@ -69,7 +69,7 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             let right = self.addition()?;
-            expr = Expression::Binary(Box::new(expr), Box::new(t.clone()), Box::new(right));
+            expr = Expression::Binary(Box::new(expr), t.clone(), Box::new(right));
         }
 
         Ok(expr)
@@ -83,7 +83,7 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             let right = self.multiplication()?;
-            expr = Expression::Binary(Box::new(expr), Box::new(t.clone()), Box::new(right));
+            expr = Expression::Binary(Box::new(expr), t.clone(), Box::new(right));
         }
 
         Ok(expr)
@@ -97,7 +97,7 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             let right = self.unary()?;
-            expr = Expression::Binary(Box::new(expr), Box::new(t.clone()), Box::new(right));
+            expr = Expression::Binary(Box::new(expr), t.clone(), Box::new(right));
         }
 
         Ok(expr)
@@ -108,7 +108,7 @@ impl<'a> Parser<'a> {
             Some(t) if *t == Token::Bang || *t == Token::Minus => {
                 self.advance();
                 let right = self.unary()?;
-                return Ok(Expression::Unary(Box::new(t.clone()), Box::new(right)));
+                return Ok(Expression::Unary(t.clone(), Box::new(right)));
             }
             _ => self.primary(),
         }
@@ -130,7 +130,7 @@ impl<'a> Parser<'a> {
                 Token::Ident { literal: _ } |
                 Token::Nil |
                 Token::True |
-                Token::False => Ok(Expression::Literal(Box::new(t.clone()))),
+                Token::False => Ok(Expression::Literal(t.clone())),
                 _ => Err("What the fuck is this shit!"),
             }
         } else {
