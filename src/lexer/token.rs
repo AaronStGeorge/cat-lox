@@ -3,7 +3,7 @@ pub enum Token {
     // Characters
     Illegal,
     // Identifiers + literals
-    Ident { literal: String },
+    Ident(String),
     LoxString(String),
     Number(f64),
     Nil,

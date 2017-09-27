@@ -36,12 +36,8 @@ mod tests {
 
     #[test]
     fn to_string_test_1() {
-        let one_token = Token::Ident {
-            literal: "1".to_string(),
-        };
-        let two_token = Token::Ident {
-            literal: "2".to_string(),
-        };
+        let one_token = Token::Ident("1".to_string());
+        let two_token = Token::Ident("2".to_string());
 
         let one_expr = Expression::Literal(one_token);
         let two_expr = Expression::Literal(two_token);
@@ -51,8 +47,8 @@ mod tests {
         let expr = Expression::Grouping(Box::new(one_plus_negative_two_expr));
 
         assert_eq!(
-            "(Grouping (Binary Plus (Literal Ident { literal: \"1\" }) \
-             (Unary Minus (Literal Ident { literal: \"2\" }))))"
+            "(Grouping (Binary Plus (Literal Ident(\"1\")) \
+             (Unary Minus (Literal Ident(\"2\")))))"
                 .to_string(),
             ASTStringVisitor { expr: &expr }.to_string()
         )
@@ -60,20 +56,16 @@ mod tests {
 
     #[test]
     fn to_string_test_2() {
-        let one_token = Token::Ident {
-            literal: "1".to_string(),
-        };
-        let two_token = Token::Ident {
-            literal: "2".to_string(),
-        };
+        let one_token = Token::Ident("1".to_string());
+        let two_token = Token::Ident("2".to_string());
         let two_expr = Expression::Literal(two_token);
 
         let mut expr = Expression::Literal(one_token);
         expr = Expression::Binary(Box::new(expr), Token::Plus, Box::new(two_expr));
 
         assert_eq!(
-            "(Binary Plus (Literal Ident { literal: \"1\" }) (Literal \
-             Ident { literal: \"2\" }))"
+            "(Binary Plus (Literal Ident(\"1\")) (Literal \
+             Ident(\"2\")))"
                 .to_string(),
             ASTStringVisitor { expr: &expr }.to_string()
         )

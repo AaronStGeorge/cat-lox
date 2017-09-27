@@ -104,7 +104,7 @@ impl Iterator for Lexer {
                 } else if literal.chars().all(|c| c.is_digit(10) || c == '.') {
                     Some(Token::Number(literal.parse::<f64>().unwrap()))
                 } else {
-                    Some(Token::Ident { literal: literal })
+                    Some(Token::Ident(literal))
                 }
             }
         }

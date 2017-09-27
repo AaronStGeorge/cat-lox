@@ -127,7 +127,7 @@ impl<'a> Parser<'a> {
                     }
                 }
                 Token::Number(_) |
-                Token::Ident { literal: _ } |
+                Token::Ident(_) |
                 Token::Nil |
                 Token::True |
                 Token::LoxString(_) |

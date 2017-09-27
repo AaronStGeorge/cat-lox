@@ -35,68 +35,44 @@ fn lexer_test() {
 
     let expected = vec![
         Token::Let,
-        Token::Ident {
-            literal: "five".to_string(),
-        },
+        Token::Ident("five".to_string()),
         Token::Assign,
         Token::Number(5.0),
         Token::Semicolon,
         Token::Let,
-        Token::Ident {
-            literal: "ten".to_string(),
-        },
+        Token::Ident("ten".to_string()),
         Token::Assign,
         Token::Number(10.0),
         Token::Semicolon,
         Token::Let,
-        Token::Ident {
-            literal: "a_string".to_string(),
-        },
+        Token::Ident("a_string".to_string()),
         Token::Assign,
         Token::LoxString("\n    blaaaa\n    ".to_string()),
         Token::Semicolon,
         Token::Let,
-        Token::Ident {
-            literal: "add".to_string(),
-        },
+        Token::Ident("add".to_string()),
         Token::Assign,
         Token::Function,
         Token::LeftParentheses,
-        Token::Ident {
-            literal: "x".to_string(),
-        },
+        Token::Ident("x".to_string()),
         Token::Comma,
-        Token::Ident {
-            literal: "y".to_string(),
-        },
+        Token::Ident("y".to_string()),
         Token::RightParentheses,
         Token::LeftBrace,
-        Token::Ident {
-            literal: "x".to_string(),
-        },
+        Token::Ident("x".to_string()),
         Token::Plus,
-        Token::Ident {
-            literal: "y".to_string(),
-        },
+        Token::Ident("y".to_string()),
         Token::Semicolon,
         Token::RightBrace,
         Token::Semicolon,
         Token::Let,
-        Token::Ident {
-            literal: "result".to_string(),
-        },
+        Token::Ident("result".to_string()),
         Token::Assign,
-        Token::Ident {
-            literal: "add".to_string(),
-        },
+        Token::Ident("add".to_string()),
         Token::LeftParentheses,
-        Token::Ident {
-            literal: "five".to_string(),
-        },
+        Token::Ident("five".to_string()),
         Token::Comma,
-        Token::Ident {
-            literal: "ten".to_string(),
-        },
+        Token::Ident("ten".to_string()),
         Token::RightParentheses,
         Token::Semicolon,
         Token::Bang,
@@ -184,13 +160,7 @@ fn less_equal_test() {
 fn nil_test() {
     let input = "a = nil";
 
-    let expected = vec![
-        Token::Ident {
-            literal: "a".to_string(),
-        },
-        Token::Assign,
-        Token::Nil,
-    ];
+    let expected = vec![Token::Ident("a".to_string()), Token::Assign, Token::Nil];
 
     let lexer = Lexer::new(input);
     let results: Vec<Token> = lexer.collect();
