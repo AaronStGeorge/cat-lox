@@ -10,8 +10,8 @@ fn parser_test_1() {
 
     let one_token = Token::Number(1.0);
     let two_token = Token::Number(2.0);
-    let three_token = Token::Number(2.0);
-    let four_token = Token::Number(2.0);
+    let three_token = Token::Number(3.0);
+    let four_token = Token::Number(4.0);
 
     let tokens = vec![
         one_token.clone(),
