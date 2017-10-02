@@ -128,7 +128,7 @@ impl fmt::Display for ExpressionReturn {
         match self {
             &ExpressionReturn::Number(n) => write!(f, "{}", n),
             &ExpressionReturn::Boolean(b) => write!(f, "{}", b),
-            &ExpressionReturn::ReturnString(ref s) => write!(f, "\"{}\"", s.to_string()),
+            &ExpressionReturn::ReturnString(ref s) => write!(f, "{}", s.to_string()),
             &ExpressionReturn::Nil => write!(f, "nil"),
         }
     }
