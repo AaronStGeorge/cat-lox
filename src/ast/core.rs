@@ -7,3 +7,8 @@ pub enum Expression {
     Binary(Box<Expression>, Token, Box<Expression>),
     Grouping(Box<Expression>),
 }
+
+pub enum Statement {
+    Print(Expression),
+    Expression(Expression),
+}

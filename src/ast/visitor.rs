@@ -1,5 +1,9 @@
 use ast::core::*;
 
-pub trait Visitor<T> {
-    fn visit_expression(&self, e: &Expression) -> T;
+pub trait Visitor {
+    type E;
+    type S;
+
+    fn visit_expression(&self, e: &Expression) -> Self::E;
+    fn visit_statement(&self, s: &Statement) -> Self::S;
 }

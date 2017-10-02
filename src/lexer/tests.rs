@@ -192,7 +192,11 @@ fn lox_string_test() {
 fn lox_print_test() {
     let input = "print \" bla! \";";
 
-    let expected = vec![Token::Print, Token::LoxString(" bla! ".to_string()), Token::Semicolon];
+    let expected = vec![
+        Token::Print,
+        Token::LoxString(" bla! ".to_string()),
+        Token::Semicolon,
+    ];
 
     let lexer = Lexer::new(input);
     let results: Vec<Token> = lexer.collect();

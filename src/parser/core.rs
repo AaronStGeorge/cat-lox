@@ -15,8 +15,13 @@ impl<'a> Parser<'a> {
         };
     }
 
-    pub fn parse(&mut self) -> Result<Expression, &'static str> {
-        self.expression()
+    pub fn parse(&mut self) -> Result<Vec<Statement>, &'static str> {
+        let mut statements: Vec<Statement> = vec![];
+        while let Some(_) = self.peek() {
+            statements.push(self.statement()?);
+        }
+
+        Ok(statements)
     }
 
     fn advance(&self) -> Option<&Token> {
@@ -35,6 +40,41 @@ impl<'a> Parser<'a> {
             None
         } else {
             Some(&self.tokens[index])
+        }
+    }
+
+
+    fn statement(&self) -> Result<Statement, &'static str> {
+        match self.peek() {
+            Some(&Token::Print) => {
+                self.advance();
+                self.print_statement()
+            }
+            _ => self.expr_statement(),
+        }
+    }
+
+    fn print_statement(&self) -> Result<Statement, &'static str> {
+        let expr = self.expression()?;
+
+        match self.peek() {
+            Some(t) if *t == Token::Semicolon => {
+                self.advance();
+                Ok(Statement::Print(expr))
+            }
+            _ => Err("There should be a fucking semicolon here!"),
+        }
+    }
+
+    fn expr_statement(&self) -> Result<Statement, &'static str> {
+        let expr = self.expression()?;
+
+        match self.peek() {
+            Some(t) if *t == Token::Semicolon => {
+                self.advance();
+                Ok(Statement::Expression(expr))
+            }
+            _ => Err("There should be a fucking semicolon here!"),
         }
     }
 

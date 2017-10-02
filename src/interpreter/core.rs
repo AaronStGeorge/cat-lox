@@ -1,27 +1,36 @@
 use ast::*;
 use lexer::*;
+use std::fmt;
 
 pub struct Interpreter<'a> {
-    expr: &'a Expression,
+    program: &'a [Statement],
 }
 
 impl<'a> Interpreter<'a> {
-    pub fn new(expression: &'a Expression) -> Interpreter {
-        Interpreter { expr: expression }
+    pub fn new(statements: &'a [Statement]) -> Interpreter {
+        Interpreter {
+            program: statements,
+        }
     }
 
-    pub fn interpret(&self) -> Result<String, &'static str> {
-        match self.visit_expression(self.expr)? {
-            ExpressionReturn::Number(r) => Ok(format!("{}", r)),
-            ExpressionReturn::Boolean(r) => Ok(format!("{}", r)),
-            ExpressionReturn::ReturnString(s) => Ok(format!("\"{}\"", s)),
-            ExpressionReturn::Nil => Ok("nil".to_string()),
+    pub fn evaluate(&self, e: &Expression) -> Result<ExpressionReturn, &'static str> {
+        self.visit_expression(e)
+    }
+
+    pub fn interpret(&self) -> Result<(), &'static str> {
+        for s in self.program {
+            self.visit_statement(s)?;
         }
+
+        Ok(())
     }
 }
 
-impl<'a> Visitor<Result<ExpressionReturn, &'static str>> for Interpreter<'a> {
-    fn visit_expression(&self, e: &Expression) -> Result<ExpressionReturn, &'static str> {
+impl<'a> Visitor for Interpreter<'a> {
+    type E = Result<ExpressionReturn, &'static str>;
+    type S = Result<(), &'static str>;
+
+    fn visit_expression(&self, e: &Expression) -> Self::E {
         match e {
             &Expression::Literal(ref t) => match t.clone() {
                 Token::Number(i) => Ok(ExpressionReturn::Number(i)),
@@ -88,6 +97,20 @@ impl<'a> Visitor<Result<ExpressionReturn, &'static str>> for Interpreter<'a> {
             }
         }
     }
+
+    fn visit_statement(&self, s: &Statement) -> Self::S {
+        match s {
+            &Statement::Print(ref e) => {
+                let result = self.visit_expression(e)?;
+                println!("{}", result);
+                Ok(())
+            }
+            &Statement::Expression(ref e) => {
+                self.visit_expression(e)?;
+                Ok(())
+            }
+        }
+    }
 }
 
 // This type feels a little silly. Maybe this could just be the expression
@@ -98,4 +121,15 @@ pub enum ExpressionReturn {
     ReturnString(String),
     Boolean(bool),
     Nil,
+}
+
+impl fmt::Display for ExpressionReturn {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &ExpressionReturn::Number(n) => write!(f, "{}", n),
+            &ExpressionReturn::Boolean(b) => write!(f, "{}", b),
+            &ExpressionReturn::ReturnString(ref s) => write!(f, "\"{}\"", s.to_string()),
+            &ExpressionReturn::Nil => write!(f, "nil"),
+        }
+    }
 }

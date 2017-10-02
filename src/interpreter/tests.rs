@@ -4,7 +4,7 @@ use super::*;
 
 #[test]
 fn interpreter_test_1() {
-    // Test for the results of interpreting the following program:
+    // Test for the results of interpreting the following expression:
     // 1 * 2 + -3 >= 4 != true
 
     let one_token = Token::Number(1.0);
@@ -37,14 +37,14 @@ fn interpreter_test_1() {
         Box::new(true_expr),
     );
 
-    let interpreter_result = Interpreter::new(&ast).interpret();
+    let interpreter_result = Interpreter::new(&[]).evaluate(&ast);
     assert_eq!(interpreter_result.is_ok(), true);
-    assert_eq!(interpreter_result.unwrap(), "true");
+    assert_eq!(format!("{}", interpreter_result.unwrap()), "true");
 }
 
 #[test]
 fn interpreter_test_2() {
-    // Test for the results of interpreting the following program:
+    // Test for the results of interpreting the following expression:
     // 1 * (2 + -3)
 
     let one_token = Token::Number(1.0);
@@ -68,14 +68,14 @@ fn interpreter_test_2() {
         Box::new(two_neg_three_grouping),
     );
 
-    let interpreter_result = Interpreter::new(&ast).interpret();
+    let interpreter_result = Interpreter::new(&[]).evaluate(&ast);
     assert_eq!(interpreter_result.is_ok(), true);
-    assert_eq!(interpreter_result.unwrap(), "-1");
+    assert_eq!(format!("{}", interpreter_result.unwrap()), "-1");
 }
 
 #[test]
 fn interpreter_test_3() {
-    // Test for the results of interpreting the following program:
+    // Test for the results of interpreting the following expression:
     // 1 > 2
 
     let one_token = Token::Number(1.0);
@@ -86,14 +86,14 @@ fn interpreter_test_3() {
 
     let ast = Expression::Binary(Box::new(one_expr), Token::GreaterThan, Box::new(two_expr));
 
-    let interpreter_result = Interpreter::new(&ast).interpret();
+    let interpreter_result = Interpreter::new(&[]).evaluate(&ast);
     assert_eq!(interpreter_result.is_ok(), true);
-    assert_eq!(interpreter_result.unwrap(), "false");
+    assert_eq!(format!("{}", interpreter_result.unwrap()), "false");
 }
 
 #[test]
 fn interpreter_test_4() {
-    // Test for the results of interpreting the following program:
+    // Test for the results of interpreting the following expression:
     // !nil == true
 
     let true_expr = Expression::Literal(Token::True);
@@ -103,14 +103,14 @@ fn interpreter_test_4() {
 
     let ast = Expression::Binary(Box::new(bang_nil), Token::Equal, Box::new(true_expr));
 
-    let interpreter_result = Interpreter::new(&ast).interpret();
+    let interpreter_result = Interpreter::new(&[]).evaluate(&ast);
     assert_eq!(interpreter_result.is_ok(), true);
-    assert_eq!(interpreter_result.unwrap(), "true");
+    assert_eq!(format!("{}", interpreter_result.unwrap()), "true");
 }
 
 #[test]
 fn interpreter_test_5() {
-    // Test for the results of interpreting the following program:
+    // Test for the results of interpreting the following expression:
     // !2 == false
 
     let two_token = Token::Number(2.0);
@@ -122,7 +122,7 @@ fn interpreter_test_5() {
 
     let ast = Expression::Binary(Box::new(bang_two), Token::Equal, Box::new(false_expr));
 
-    let interpreter_result = Interpreter::new(&ast).interpret();
+    let interpreter_result = Interpreter::new(&[]).evaluate(&ast);
     assert_eq!(interpreter_result.is_ok(), true);
-    assert_eq!(interpreter_result.unwrap(), "true");
+    assert_eq!(format!("{}", interpreter_result.unwrap()), "true");
 }

@@ -2,10 +2,13 @@ use ast::*;
 use std::fmt;
 
 pub struct ASTStringVisitor<'a> {
-    pub expr: &'a Expression,
+    pub statements: &'a [Statement],
 }
 
-impl<'a> Visitor<String> for ASTStringVisitor<'a> {
+impl<'a> Visitor for ASTStringVisitor<'a> {
+    type E = String;
+    type S = String;
+
     fn visit_expression(&self, e: &Expression) -> String {
         match *e {
             Expression::Literal(ref t) => format!("(Literal {:?})", t),
@@ -21,11 +24,23 @@ impl<'a> Visitor<String> for ASTStringVisitor<'a> {
             Expression::Grouping(ref e) => format!("(Grouping {})", self.visit_expression(e)),
         }
     }
+
+    fn visit_statement(&self, s: &Statement) -> String {
+        match *s {
+            Statement::Expression(ref e) => {
+                format!("(Statement Expression {})", self.visit_expression(e))
+            }
+            Statement::Print(ref e) => format!("(Statement Print {})", self.visit_expression(e)),
+        }
+    }
 }
 
 impl<'a> fmt::Display for ASTStringVisitor<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.visit_expression(self.expr))
+        for s in self.statements {
+            write!(f, "{}", self.visit_statement(s))?;
+        }
+        Ok(())
     }
 }
 
@@ -46,11 +61,15 @@ mod tests {
             Expression::Binary(Box::new(one_expr), Token::Plus, Box::new(negative_two_expr));
         let expr = Expression::Grouping(Box::new(one_plus_negative_two_expr));
 
+        let stmt = Statement::Expression(expr);
+
         assert_eq!(
-            "(Grouping (Binary Plus (Literal Ident(\"1\")) \
-             (Unary Minus (Literal Ident(\"2\")))))"
+            "(Statement Expression (Grouping (Binary Plus (Literal Ident(\"1\")) \
+             (Unary Minus (Literal Ident(\"2\"))))))"
                 .to_string(),
-            ASTStringVisitor { expr: &expr }.to_string()
+            ASTStringVisitor {
+                statements: &[stmt],
+            }.to_string()
         )
     }
 
@@ -63,11 +82,15 @@ mod tests {
         let mut expr = Expression::Literal(one_token);
         expr = Expression::Binary(Box::new(expr), Token::Plus, Box::new(two_expr));
 
+        let stmt = Statement::Expression(expr);
+
         assert_eq!(
-            "(Binary Plus (Literal Ident(\"1\")) (Literal \
-             Ident(\"2\")))"
+            "(Statement Expression (Binary Plus (Literal Ident(\"1\")) (Literal \
+             Ident(\"2\"))))"
                 .to_string(),
-            ASTStringVisitor { expr: &expr }.to_string()
+            ASTStringVisitor {
+                statements: &[stmt],
+            }.to_string()
         )
     }
 }

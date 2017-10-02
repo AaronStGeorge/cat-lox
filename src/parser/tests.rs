@@ -6,7 +6,7 @@ use super::*;
 #[test]
 fn parser_test_1() {
     // Test for the results of parsing the following program:
-    // 1 * 2 + -3 >= 4 != true
+    // 1 * 2 + -3 >= 4 != true;
 
     let one_token = Token::Number(1.0);
     let two_token = Token::Number(2.0);
@@ -24,6 +24,7 @@ fn parser_test_1() {
         four_token.clone(),
         Token::NotEqual,
         Token::True,
+        Token::Semicolon,
     ];
 
     let one_expr = Expression::Literal(one_token);
@@ -45,26 +46,30 @@ fn parser_test_1() {
         Box::new(four_expr),
     );
 
-    let expected_ast = Expression::Binary(
+    let expected_expr = Expression::Binary(
         Box::new(one_star_two_plus_neg_three_greater_equal_four),
         Token::NotEqual,
         Box::new(true_expr),
     );
 
-    let ast = Parser::new(&tokens).parse().unwrap();
+    let expected_ast = Statement::Expression(expected_expr);
+
+    let statements = Parser::new(&tokens).parse().unwrap();
 
     assert_eq!(
         ASTStringVisitor {
-            expr: &expected_ast,
+            statements: &[expected_ast],
         }.to_string(),
-        ASTStringVisitor { expr: &ast }.to_string()
+        ASTStringVisitor {
+            statements: &statements,
+        }.to_string()
     );
 }
 
 #[test]
 fn parser_test_2() {
     // Test for the results of parsing the following program:
-    // 1 * (2 + -3)
+    // 1 * (2 + -3);
 
     let one_token = Token::Number(1.0);
     let two_token = Token::Number(2.0);
@@ -79,6 +84,7 @@ fn parser_test_2() {
         Token::Minus,
         three_token.clone(),
         Token::RightParentheses,
+        Token::Semicolon,
     ];
 
     let one_expr = Expression::Literal(one_token);
@@ -92,44 +98,57 @@ fn parser_test_2() {
 
     let two_neg_three_grouping = Expression::Grouping(Box::new(two_plus_neg_three));
 
-    let expected_ast = Expression::Binary(
+    let expected_expr = Expression::Binary(
         Box::new(one_expr),
         Token::Asterisk,
         Box::new(two_neg_three_grouping),
     );
 
-    let ast = Parser::new(&tokens).parse().unwrap();
+    let expected_ast = Statement::Expression(expected_expr);
+
+    let statements = Parser::new(&tokens).parse().unwrap();
 
     assert_eq!(
         ASTStringVisitor {
-            expr: &expected_ast,
+            statements: &[expected_ast],
         }.to_string(),
-        ASTStringVisitor { expr: &ast }.to_string()
+        ASTStringVisitor {
+            statements: &statements,
+        }.to_string()
     );
 }
 
 #[test]
 fn parser_test_3() {
     // Test for the results of parsing the following program:
-    // 1 > 2
+    // 1 > 2;
 
     let one_token = Token::Number(1.0);
     let two_token = Token::Number(2.0);
 
-    let tokens = vec![one_token.clone(), Token::GreaterThan, two_token.clone()];
+    let tokens = vec![
+        one_token.clone(),
+        Token::GreaterThan,
+        two_token.clone(),
+        Token::Semicolon,
+    ];
 
     let one_expr = Expression::Literal(one_token);
     let two_expr = Expression::Literal(two_token);
 
-    let expected_ast =
+    let expected_expr =
         Expression::Binary(Box::new(one_expr), Token::GreaterThan, Box::new(two_expr));
 
-    let ast = Parser::new(&tokens).parse().unwrap();
+    let expected_ast = Statement::Expression(expected_expr);
+
+    let statements = Parser::new(&tokens).parse().unwrap();
 
     assert_eq!(
         ASTStringVisitor {
-            expr: &expected_ast,
+            statements: &[expected_ast],
         }.to_string(),
-        ASTStringVisitor { expr: &ast }.to_string()
+        ASTStringVisitor {
+            statements: &statements,
+        }.to_string()
     );
 }

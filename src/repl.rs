@@ -26,12 +26,17 @@ pub fn start(stdin: io::Stdin, mut stdout: io::Stdout) -> io::Result<()> {
         }
 
         println!("AST ----");
-        let ast = Parser::new(&tokens).parse().unwrap();
-        println!("{}", ASTStringVisitor { expr: &ast });
+        let statements = Parser::new(&tokens).parse().unwrap();
+        println!(
+            "{}",
+            ASTStringVisitor {
+                statements: &statements,
+            }
+        );
 
         println!("Output ----");
-        match Interpreter::new(&ast).interpret() {
-            Ok(result) => println!("{}", result),
+        match Interpreter::new(&statements).interpret() {
+            Ok(_) => (),
             Err(err) => println!("Run Time Error: {}", err),
         }
 
