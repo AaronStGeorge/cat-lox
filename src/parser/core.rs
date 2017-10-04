@@ -101,8 +101,8 @@ impl<'a> Parser<'a> {
 
         while let Some(t) = match self.peek() {
             Some(t)
-                if *t == Token::Equal || *t == Token::GreaterThan || *t == Token::GreaterEqual ||
-                    *t == Token::LessThan || *t == Token::LessEqual =>
+                if *t == Token::Equal || *t == Token::GreaterThan || *t == Token::GreaterEqual
+                    || *t == Token::LessThan || *t == Token::LessEqual =>
             {
                 self.advance()
             }
