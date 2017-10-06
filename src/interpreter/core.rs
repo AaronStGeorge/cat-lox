@@ -13,6 +13,8 @@ impl<'a> Interpreter<'a> {
         }
     }
 
+    // TODO: this is here because in the future it might make sense to have the
+    // repl take expressions again, if that is never implemented this should be removed.
     pub fn evaluate(&self, e: &Expression) -> Result<ExpressionReturn, &'static str> {
         self.visit_expression(e)
     }
@@ -109,6 +111,7 @@ impl<'a> Visitor for Interpreter<'a> {
                 self.visit_expression(e)?;
                 Ok(())
             }
+            _ => unimplemented!(),
         }
     }
 }

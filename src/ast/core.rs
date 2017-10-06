@@ -11,4 +11,5 @@ pub enum Expression {
 pub enum Statement {
     Print(Expression),
     Expression(Expression),
+    VariableDeclaration(String, Expression),
 }

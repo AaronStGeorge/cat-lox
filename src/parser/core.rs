@@ -15,13 +15,24 @@ impl<'a> Parser<'a> {
         };
     }
 
-    pub fn parse(&mut self) -> Result<Vec<Statement>, &'static str> {
+    pub fn parse(&mut self) -> Result<Vec<Statement>, String> {
         let mut statements: Vec<Statement> = vec![];
+        let mut errs: Vec<&'static str> = vec![];
         while let Some(_) = self.peek() {
-            statements.push(self.statement()?);
+            match self.declaration() {
+                Ok(statement) => statements.push(statement),
+                Err(err) => {
+                    errs.push(err);
+                    self.synchronize();
+                }
+            }
         }
 
-        Ok(statements)
+        if !errs.is_empty() {
+            Err(errs.join("\n"))
+        } else {
+            Ok(statements)
+        }
     }
 
     fn advance(&self) -> Option<&Token> {
@@ -43,6 +54,42 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn previous(&self) -> Option<&Token> {
+        let index = self.index.get();
+        if index - 1 >= self.tokens.len() || index == 0 {
+            None
+        } else {
+            Some(&self.tokens[index - 1])
+        }
+    }
+
+    fn synchronize(&self) -> () {
+        self.advance();
+
+        while let Some(next_token) = self.peek() {
+            if let Some(previous_token) = self.previous() {
+                if *previous_token == Token::Semicolon {
+                    return;
+                }
+            }
+
+            match next_token {
+                &Token::Function | &Token::Print | &Token::If | &Token::Return | &Token::Let => {
+                    return
+                }
+                _ => (),
+            }
+
+            self.advance();
+        }
+    }
+
+    fn declaration(&self) -> Result<Statement, &'static str> {
+        match self.peek() {
+            Some(&Token::Let) => self.var_declaration(),
+            _ => self.statement(),
+        }
+    }
 
     fn statement(&self) -> Result<Statement, &'static str> {
         match self.peek() {
@@ -75,6 +122,20 @@ impl<'a> Parser<'a> {
                 Ok(Statement::Expression(expr))
             }
             _ => Err("There should be a fucking semicolon here!"),
+        }
+    }
+
+    fn var_declaration(&self) -> Result<Statement, &'static str> {
+        let var_name = match (self.advance(), self.advance(), self.advance()) {
+            (Some(&Token::Let), Some(&Token::Ident(ref n)), Some(&Token::Assign)) => {
+                Some(n.clone())
+            }
+            _ => None,
+        };
+
+        match (var_name, self.expression()?, self.peek()) {
+            (Some(s), e, Some(&Token::Semicolon)) => Ok(Statement::VariableDeclaration(s, e)),
+            _ => Err("OMG!!! It goes let whatever = some shit; How. Fucking. Hard. Is. That. "),
         }
     }
 

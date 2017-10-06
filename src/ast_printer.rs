@@ -31,6 +31,7 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
                 format!("(Statement Expression {})", self.visit_expression(e))
             }
             Statement::Print(ref e) => format!("(Statement Print {})", self.visit_expression(e)),
+            _ => unimplemented!(),
         }
     }
 }
