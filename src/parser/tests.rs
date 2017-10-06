@@ -152,3 +152,65 @@ fn parser_test_3() {
         }.to_string()
     );
 }
+
+#[test]
+fn parser_print_test() {
+    // Test for the results of parsing the following program:
+    // print 1;
+
+    let one_token = Token::Number(1.0);
+
+    let tokens = vec![Token::Print, one_token.clone(), Token::Semicolon];
+
+    let one_expr = Expression::Literal(one_token);
+
+    let expected_ast = Statement::Print(one_expr);
+
+    let statements = Parser::new(&tokens).parse().unwrap();
+
+    assert_eq!(
+        ASTStringVisitor {
+            statements: &[expected_ast],
+        }.to_string(),
+        ASTStringVisitor {
+            statements: &statements,
+        }.to_string()
+    );
+}
+
+#[test]
+fn parser_variable_declaration_test() {
+    // Test for the results of parsing the following program:
+    // let a = 1 + 2;
+
+    let one_token = Token::Number(1.0);
+    let two_token = Token::Number(2.0);
+
+    let tokens = vec![
+        Token::Let,
+        Token::Ident("a".to_string()),
+        Token::Assign,
+        one_token.clone(),
+        Token::Plus,
+        two_token.clone(),
+        Token::Semicolon,
+    ];
+
+    let one_expr = Expression::Literal(one_token);
+    let two_expr = Expression::Literal(two_token);
+
+    let one_plus_two = Expression::Binary(Box::new(one_expr), Token::Plus, Box::new(two_expr));
+
+    let expected_ast = Statement::VariableDeclaration("a".to_string(), one_plus_two);
+
+    let statements = Parser::new(&tokens).parse().unwrap();
+
+    assert_eq!(
+        ASTStringVisitor {
+            statements: &[expected_ast],
+        }.to_string(),
+        ASTStringVisitor {
+            statements: &statements,
+        }.to_string()
+    );
+}

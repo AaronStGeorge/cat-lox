@@ -109,7 +109,7 @@ impl<'a> Parser<'a> {
                 self.advance();
                 Ok(Statement::Print(expr))
             }
-            _ => Err("There should be a fucking semicolon here!"),
+            _ => Err("There should be a fucking semicolon after this print statement!"),
         }
     }
 
@@ -121,7 +121,7 @@ impl<'a> Parser<'a> {
                 self.advance();
                 Ok(Statement::Expression(expr))
             }
-            _ => Err("There should be a fucking semicolon here!"),
+            _ => Err("There should be a fucking semicolon after this expression!"),
         }
     }
 
@@ -134,7 +134,10 @@ impl<'a> Parser<'a> {
         };
 
         match (var_name, self.expression()?, self.peek()) {
-            (Some(s), e, Some(&Token::Semicolon)) => Ok(Statement::VariableDeclaration(s, e)),
+            (Some(s), e, Some(&Token::Semicolon)) => {
+                self.advance();
+                Ok(Statement::VariableDeclaration(s, e))
+            }
             _ => Err("OMG!!! It goes let whatever = some shit; How. Fucking. Hard. Is. That. "),
         }
     }

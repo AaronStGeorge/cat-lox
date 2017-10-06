@@ -9,29 +9,35 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
     type E = String;
     type S = String;
 
-    fn visit_expression(&self, e: &Expression) -> String {
-        match *e {
+    fn visit_expression(&self, expr: &Expression) -> String {
+        match *expr {
             Expression::Literal(ref t) => format!("(Literal {:?})", t),
-            Expression::Unary(ref t, ref e) => {
-                format!("(Unary {:?} {})", t, self.visit_expression(e))
+            Expression::Unary(ref t, ref expr) => {
+                format!("(Unary {:?} {})", t, self.visit_expression(expr))
             }
-            Expression::Binary(ref e, ref t, ref e2) => format!(
+            Expression::Binary(ref expr, ref t, ref e2) => format!(
                 "(Binary {:?} {} {})",
                 t,
-                self.visit_expression(e),
+                self.visit_expression(expr),
                 self.visit_expression(e2)
             ),
-            Expression::Grouping(ref e) => format!("(Grouping {})", self.visit_expression(e)),
+            Expression::Grouping(ref expr) => format!("(Grouping {})", self.visit_expression(expr)),
         }
     }
 
     fn visit_statement(&self, s: &Statement) -> String {
         match *s {
-            Statement::Expression(ref e) => {
-                format!("(Statement Expression {})", self.visit_expression(e))
+            Statement::Expression(ref expr) => {
+                format!("(Statement Expression {})", self.visit_expression(expr))
             }
-            Statement::Print(ref e) => format!("(Statement Print {})", self.visit_expression(e)),
-            _ => unimplemented!(),
+            Statement::Print(ref expr) => {
+                format!("(Statement Print {})", self.visit_expression(expr))
+            }
+            Statement::VariableDeclaration(ref name, ref expr) => format!(
+                "(Statement VariableDeclaration {} {})",
+                name,
+                self.visit_expression(expr)
+            ),
         }
     }
 }
