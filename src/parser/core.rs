@@ -231,11 +231,11 @@ impl<'a> Parser<'a> {
                     }
                 }
                 Token::Number(_) |
-                Token::Ident(_) |
                 Token::Nil |
                 Token::True |
                 Token::LoxString(_) |
                 Token::False => Ok(Expression::Literal(t.clone())),
+                Token::Ident(ref name) => Ok(Expression::Variable(name.clone())),
                 _ => Err("What the fuck is this shit!"),
             }
         } else {

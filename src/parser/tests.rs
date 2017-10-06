@@ -214,3 +214,27 @@ fn parser_variable_declaration_test() {
         }.to_string()
     );
 }
+
+
+#[test]
+fn parser_variable_test() {
+    // Test for the results of parsing the following program:
+    // a;
+
+    let tokens = vec![Token::Ident("a".to_string()), Token::Semicolon];
+
+    let a_expr = Expression::Variable("a".to_string());
+
+    let expected_ast = Statement::Expression(a_expr);
+
+    let statements = Parser::new(&tokens).parse().unwrap();
+
+    assert_eq!(
+        ASTStringVisitor {
+            statements: &[expected_ast],
+        }.to_string(),
+        ASTStringVisitor {
+            statements: &statements,
+        }.to_string()
+    );
+}

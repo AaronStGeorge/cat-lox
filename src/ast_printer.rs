@@ -11,10 +11,6 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
 
     fn visit_expression(&self, expr: &Expression) -> String {
         match *expr {
-            Expression::Literal(ref t) => format!("(Literal {:?})", t),
-            Expression::Unary(ref t, ref expr) => {
-                format!("(Unary {:?} {})", t, self.visit_expression(expr))
-            }
             Expression::Binary(ref expr, ref t, ref e2) => format!(
                 "(Binary {:?} {} {})",
                 t,
@@ -22,6 +18,11 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
                 self.visit_expression(e2)
             ),
             Expression::Grouping(ref expr) => format!("(Grouping {})", self.visit_expression(expr)),
+            Expression::Literal(ref t) => format!("(Literal {:?})", t),
+            Expression::Unary(ref t, ref expr) => {
+                format!("(Unary {:?} {})", t, self.visit_expression(expr))
+            }
+            Expression::Variable(ref name) => format!("(Variable {:?})", name),
         }
     }
 

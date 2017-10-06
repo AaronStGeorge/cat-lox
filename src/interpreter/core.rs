@@ -34,27 +34,6 @@ impl<'a> Visitor for Interpreter<'a> {
 
     fn visit_expression(&self, e: &Expression) -> Self::E {
         match e {
-            &Expression::Literal(ref t) => match t.clone() {
-                Token::Number(i) => Ok(ExpressionReturn::Number(i)),
-                Token::True => Ok(ExpressionReturn::Boolean(true)),
-                Token::False => Ok(ExpressionReturn::Boolean(false)),
-                Token::Nil => Ok(ExpressionReturn::Nil),
-                Token::LoxString(s) => Ok(ExpressionReturn::ReturnString(s)),
-                _ => Err("🐑💨"),
-            },
-            &Expression::Grouping(ref e) => self.visit_expression(e),
-            &Expression::Unary(ref t, ref e) => {
-                let right = self.visit_expression(e)?;
-                match (right, t.clone()) {
-                    (ExpressionReturn::Number(n), Token::Minus) => Ok(ExpressionReturn::Number(-n)),
-                    (ExpressionReturn::Nil, Token::Bang) |
-                    (ExpressionReturn::Boolean(false), Token::Bang) => {
-                        Ok(ExpressionReturn::Boolean(true))
-                    }
-                    (_, Token::Bang) => Ok(ExpressionReturn::Boolean(false)),
-                    _ => Err("🖕🖕🖕🖕"),
-                }
-            }
             &Expression::Binary(ref l, ref t, ref r) => {
                 let right = self.visit_expression(r)?;
                 let left = self.visit_expression(l)?;
@@ -97,6 +76,28 @@ impl<'a> Visitor for Interpreter<'a> {
                     _ => Err("NO! NO! NO!"),
                 }
             }
+            &Expression::Grouping(ref e) => self.visit_expression(e),
+            &Expression::Literal(ref t) => match t.clone() {
+                Token::Number(i) => Ok(ExpressionReturn::Number(i)),
+                Token::True => Ok(ExpressionReturn::Boolean(true)),
+                Token::False => Ok(ExpressionReturn::Boolean(false)),
+                Token::Nil => Ok(ExpressionReturn::Nil),
+                Token::LoxString(s) => Ok(ExpressionReturn::ReturnString(s)),
+                _ => Err("🐑💨"),
+            },
+            &Expression::Unary(ref t, ref e) => {
+                let right = self.visit_expression(e)?;
+                match (right, t.clone()) {
+                    (ExpressionReturn::Number(n), Token::Minus) => Ok(ExpressionReturn::Number(-n)),
+                    (ExpressionReturn::Nil, Token::Bang) |
+                    (ExpressionReturn::Boolean(false), Token::Bang) => {
+                        Ok(ExpressionReturn::Boolean(true))
+                    }
+                    (_, Token::Bang) => Ok(ExpressionReturn::Boolean(false)),
+                    _ => Err("🖕🖕🖕🖕"),
+                }
+            }
+            &Expression::Variable(_) => unimplemented!(),
         }
     }
 
