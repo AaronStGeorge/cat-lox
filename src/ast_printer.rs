@@ -37,7 +37,10 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
             Statement::VariableDeclaration(ref name, ref expr) => format!(
                 "(Statement VariableDeclaration {} {})",
                 name,
-                self.visit_expression(expr)
+                match expr {
+                    &Some(ref expr) => self.visit_expression(expr),
+                    &None => "nil".to_string(),
+                }
             ),
         }
     }

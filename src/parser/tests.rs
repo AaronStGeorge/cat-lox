@@ -179,7 +179,7 @@ fn parser_print_test() {
 }
 
 #[test]
-fn parser_variable_declaration_test() {
+fn parser_variable_declaration_test_1() {
     // Test for the results of parsing the following program:
     // let a = 1 + 2;
 
@@ -201,7 +201,28 @@ fn parser_variable_declaration_test() {
 
     let one_plus_two = Expression::Binary(Box::new(one_expr), Token::Plus, Box::new(two_expr));
 
-    let expected_ast = Statement::VariableDeclaration("a".to_string(), one_plus_two);
+    let expected_ast = Statement::VariableDeclaration("a".to_string(), Some(one_plus_two));
+
+    let statements = Parser::new(&tokens).parse().unwrap();
+
+    assert_eq!(
+        ASTStringVisitor {
+            statements: &[expected_ast],
+        }.to_string(),
+        ASTStringVisitor {
+            statements: &statements,
+        }.to_string()
+    );
+}
+
+#[test]
+fn parser_variable_declaration_test_2() {
+    // Test for the results of parsing the following program:
+    // let a;
+
+    let tokens = vec![Token::Let, Token::Ident("a".to_string()), Token::Semicolon];
+
+    let expected_ast = Statement::VariableDeclaration("a".to_string(), None);
 
     let statements = Parser::new(&tokens).parse().unwrap();
 

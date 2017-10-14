@@ -112,13 +112,12 @@ impl<'a> Visitor for Interpreter<'a> {
                 self.visit_expression(e)?;
                 Ok(())
             }
-            _ => unimplemented!(),
+            &Statement::VariableDeclaration(ref s, ref e) => unimplemented!(),
         }
     }
 }
 
-// This type feels a little silly. Maybe this could just be the expression
-// literal branch of the tree?
+// This seems like the types the language support. This should probably just be Types.
 #[derive(Debug, Clone)]
 pub enum ExpressionReturn {
     Number(f64),

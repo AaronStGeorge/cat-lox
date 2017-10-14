@@ -1,4 +1,4 @@
-use lexer::token::*;
+use super::token::*;
 
 pub struct Lexer {
     input: Vec<char>,

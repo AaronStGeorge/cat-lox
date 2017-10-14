@@ -126,19 +126,29 @@ impl<'a> Parser<'a> {
     }
 
     fn var_declaration(&self) -> Result<Statement, &'static str> {
-        let var_name = match (self.advance(), self.advance(), self.advance()) {
-            (Some(&Token::Let), Some(&Token::Ident(ref n)), Some(&Token::Assign)) => {
-                Some(n.clone())
-            }
+        let var_name = match (self.advance(), self.advance()) {
+            (Some(&Token::Let), Some(&Token::Ident(ref n))) => Some(n.clone()),
             _ => None,
         };
 
-        match (var_name, self.expression()?, self.peek()) {
-            (Some(s), e, Some(&Token::Semicolon)) => {
+        match (var_name, self.peek()) {
+            (Some(s), Some(&Token::Assign)) => {
                 self.advance();
-                Ok(Statement::VariableDeclaration(s, e))
+                match (self.expression()?, self.peek()) {
+                    (e, Some(&Token::Semicolon)) => {
+                        self.advance();
+                        Ok(Statement::VariableDeclaration(s, Some(e)))
+                    }
+                    _ => Err(
+                        "OMG!!! It goes let whatever = some shit; How. Fucking. Hard. Is. That.",
+                    ),
+                }
             }
-            _ => Err("OMG!!! It goes let whatever = some shit; How. Fucking. Hard. Is. That. "),
+            (Some(s), Some(&Token::Semicolon)) => {
+                self.advance();
+                Ok(Statement::VariableDeclaration(s, None))
+            }
+            _ => Err("Are you trying to write let a; and failing? Jesus."),
         }
     }
 
