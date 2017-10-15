@@ -126,3 +126,31 @@ fn interpreter_test_5() {
     assert_eq!(interpreter_result.is_ok(), true);
     assert_eq!(format!("{}", interpreter_result.unwrap()), "true");
 }
+
+// TODO: These tests could be a bit cleaner if the interpret method took a
+// writer that just wrote to a string. Then each test could check a print
+// statement.
+#[test]
+fn  variable_declaration_test_1() {
+    // Test for the results of interpreting the following statement:
+    // let a = 2;
+    // Then evaluating the following expression:
+    // a
+
+    let mut interpreter = Interpreter::new();
+
+    let two_token = Token::Number(2.0);
+    let two_expr = Expression::Literal(two_token);
+
+    let statement_ast = Statement::VariableDeclaration(String::from("a"), Some(two_expr));
+    let interpreter_result = interpreter.interpret(&[statement_ast]);
+
+    assert_eq!(interpreter_result.is_ok(), true);
+
+    let a_token = Token::Ident(String::from("a"));
+    let expression_ast = Expression::Variable(a_token);
+
+    let interpreter_result = interpreter.evaluate(&expression_ast);
+    assert_eq!(interpreter_result.is_ok(), true);
+    assert_eq!(format!("{}", interpreter_result.unwrap()), "2");
+}
