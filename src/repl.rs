@@ -7,7 +7,7 @@ use interpreter::*;
 
 static PROMPT: &'static str = ">> ";
 
-pub fn start(stdin: io::Stdin, mut stdout: io::Stdout) -> io::Result<()> {
+pub fn start(stdin: io::Stdin, mut stdout: io::Stdout, is_debug: bool) -> io::Result<()> {
     let mut interpreter = Interpreter::new();
 
     loop {
@@ -22,21 +22,26 @@ pub fn start(stdin: io::Stdin, mut stdout: io::Stdout) -> io::Result<()> {
         // Write the results of lexing
         let tokens: Vec<Token> = Lexer::new(&buffer).collect();
 
-        println!("Tokens ----");
-        for t in &tokens {
-            println!("{:?}", t);
+        if is_debug {
+            println!("Tokens ----");
+            for t in &tokens {
+                println!("{:?}", t);
+            }
         }
 
-        println!("AST ----");
         let statements = Parser::new(&tokens).parse().unwrap();
-        println!(
-            "{}",
-            ASTStringVisitor {
-                statements: &statements,
-            }
-        );
 
-        println!("Output ----");
+        if is_debug {
+            println!("AST ----");
+            println!(
+                "{}",
+                ASTStringVisitor {
+                    statements: &statements,
+                }
+            );
+            println!("Output ----");
+        }
+
         match interpreter.interpret(&statements) {
             Ok(_) => (),
             Err(err) => println!("Run Time Error: {}", err),

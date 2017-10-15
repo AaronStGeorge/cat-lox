@@ -1,6 +1,7 @@
 extern crate poople;
 
 use std::io;
+use std::env;
 
 use poople::repl;
 
@@ -29,5 +30,8 @@ catbox is free software with ABSOLUTELY NO WARRANTY.
 "#
     );
 
-    repl::start(io::stdin(), io::stdout()).unwrap();
+    let args: Vec<String> = env::args().collect();
+    let is_debug = args.len() >= 2 && args[1] == String::from("debug");
+
+    repl::start(io::stdin(), io::stdout(), is_debug).unwrap();
 }
