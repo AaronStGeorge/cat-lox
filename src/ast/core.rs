@@ -6,7 +6,7 @@ pub enum Expression {
     Grouping(Box<Expression>),
     Literal(Token),
     Unary(Token, Box<Expression>),
-    Variable(String),
+    Variable(Token),
 }
 
 pub enum Statement {

@@ -37,7 +37,7 @@ fn interpreter_test_1() {
         Box::new(true_expr),
     );
 
-    let interpreter_result = Interpreter::new(&[]).evaluate(&ast);
+    let interpreter_result = Interpreter::new().evaluate(&ast);
     assert_eq!(interpreter_result.is_ok(), true);
     assert_eq!(format!("{}", interpreter_result.unwrap()), "true");
 }
@@ -68,7 +68,7 @@ fn interpreter_test_2() {
         Box::new(two_neg_three_grouping),
     );
 
-    let interpreter_result = Interpreter::new(&[]).evaluate(&ast);
+    let interpreter_result = Interpreter::new().evaluate(&ast);
     assert_eq!(interpreter_result.is_ok(), true);
     assert_eq!(format!("{}", interpreter_result.unwrap()), "-1");
 }
@@ -86,7 +86,7 @@ fn interpreter_test_3() {
 
     let ast = Expression::Binary(Box::new(one_expr), Token::GreaterThan, Box::new(two_expr));
 
-    let interpreter_result = Interpreter::new(&[]).evaluate(&ast);
+    let interpreter_result = Interpreter::new().evaluate(&ast);
     assert_eq!(interpreter_result.is_ok(), true);
     assert_eq!(format!("{}", interpreter_result.unwrap()), "false");
 }
@@ -103,7 +103,7 @@ fn interpreter_test_4() {
 
     let ast = Expression::Binary(Box::new(bang_nil), Token::Equal, Box::new(true_expr));
 
-    let interpreter_result = Interpreter::new(&[]).evaluate(&ast);
+    let interpreter_result = Interpreter::new().evaluate(&ast);
     assert_eq!(interpreter_result.is_ok(), true);
     assert_eq!(format!("{}", interpreter_result.unwrap()), "true");
 }
@@ -122,7 +122,7 @@ fn interpreter_test_5() {
 
     let ast = Expression::Binary(Box::new(bang_two), Token::Equal, Box::new(false_expr));
 
-    let interpreter_result = Interpreter::new(&[]).evaluate(&ast);
+    let interpreter_result = Interpreter::new().evaluate(&ast);
     assert_eq!(interpreter_result.is_ok(), true);
     assert_eq!(format!("{}", interpreter_result.unwrap()), "true");
 }

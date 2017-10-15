@@ -245,7 +245,7 @@ impl<'a> Parser<'a> {
                 Token::True |
                 Token::LoxString(_) |
                 Token::False => Ok(Expression::Literal(t.clone())),
-                Token::Ident(ref name) => Ok(Expression::Variable(name.clone())),
+                Token::Ident(_) => Ok(Expression::Variable(t.clone())),
                 _ => Err("What the fuck is this shit!"),
             }
         } else {

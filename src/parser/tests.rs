@@ -220,9 +220,11 @@ fn parser_variable_declaration_test_2() {
     // Test for the results of parsing the following program:
     // let a;
 
-    let tokens = vec![Token::Let, Token::Ident("a".to_string()), Token::Semicolon];
+    let a_token = Token::Ident("a".to_string());
 
-    let expected_ast = Statement::VariableDeclaration("a".to_string(), None);
+    let tokens = vec![Token::Let, a_token.clone(), Token::Semicolon];
+
+    let expected_ast = Statement::VariableDeclaration(String::from("a"), None);
 
     let statements = Parser::new(&tokens).parse().unwrap();
 
@@ -242,9 +244,11 @@ fn parser_variable_test() {
     // Test for the results of parsing the following program:
     // a;
 
-    let tokens = vec![Token::Ident("a".to_string()), Token::Semicolon];
+    let a_token = Token::Ident("a".to_string());
 
-    let a_expr = Expression::Variable("a".to_string());
+    let tokens = vec![a_token.clone(), Token::Semicolon];
+
+    let a_expr = Expression::Variable(a_token);
 
     let expected_ast = Statement::Expression(a_expr);
 

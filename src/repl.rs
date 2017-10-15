@@ -8,6 +8,8 @@ use interpreter::*;
 static PROMPT: &'static str = ">> ";
 
 pub fn start(stdin: io::Stdin, mut stdout: io::Stdout) -> io::Result<()> {
+    let mut interpreter = Interpreter::new();
+
     loop {
         // Write prompt
         stdout.write(PROMPT.as_bytes())?;
@@ -35,7 +37,7 @@ pub fn start(stdin: io::Stdin, mut stdout: io::Stdout) -> io::Result<()> {
         );
 
         println!("Output ----");
-        match Interpreter::new(&statements).interpret() {
+        match interpreter.interpret(&statements) {
             Ok(_) => (),
             Err(err) => println!("Run Time Error: {}", err),
         }
