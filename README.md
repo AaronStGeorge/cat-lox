@@ -1,4 +1,23 @@
-# poo-pl
+```
+  ___    __   ____  ____  _____  _  _
+ / __)  /__\ (_  _)(  _ \(  _  )( \/ )
+( (__  /(__)\  )(   ) _ < )(_)(  )  (
+ \___)(__)(__)(__) (____/(_____)(_/\_)
+
+                             ,
+      ,-.       _,---._ __  / \
+     /  )    .-'       `./ /   \
+    (  (   ,'            `/    /|
+     \  `-"             \'\   / |
+      `.              ,  \ \ /  |
+       /`.          ,'-`----Y   |
+      (            ;        |   '
+      |  ,-.    ,-'         |  /
+      |  | (   |            | /
+      )  |  \  `.___________|/
+      `--'   `--'
+```
+
 A a 💩ier dialect of the [Lox](http://craftinginterpreters.com/the-lox-language.html) programming language, as described in Bob Nystrom's excellent book [Crafting Interpreters](https://http://craftinginterpreters.com/). Implemented in [rust](https://www.rust-lang.org/en-US/).
 
 Goals
