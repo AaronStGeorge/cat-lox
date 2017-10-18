@@ -35,10 +35,11 @@ impl MutVisitor for Interpreter {
 
     fn visit_expression(&mut self, e: &Expression) -> Self::E {
         match e {
-            &Expression::Binary(ref l, ref t, ref r) => {
-                let right = self.visit_expression(r)?;
-                let left = self.visit_expression(l)?;
-                match (left, t.clone(), right) {
+            &Expression::Assignment(ref token, ref expr) => unimplemented!(),
+            &Expression::Binary(ref l_expr, ref token, ref r_expr) => {
+                let right = self.visit_expression(r_expr)?;
+                let left = self.visit_expression(l_expr)?;
+                match (left, token.clone(), right) {
                     (
                         ExpressionReturn::ReturnString(mut ls),
                         Token::Plus,
