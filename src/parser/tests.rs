@@ -263,3 +263,31 @@ fn parser_variable_test() {
         }.to_string()
     );
 }
+
+#[test]
+fn parser_assignment_test() {
+    // Test for the results of parsing the following program:
+    // a = 8;
+
+    let a_token = Token::Ident("a".to_string());
+    let eight_token = Token::Number(8.0);
+
+    let tokens = vec![a_token.clone(), Token::Assign, eight_token.clone() ,Token::Semicolon];
+
+    let eight_expr = Expression::Literal(eight_token);
+
+    let a_assign_eight = Expression::Assignment(a_token, Box::new(eight_expr));
+
+    let expected_ast = Statement::Expression(a_assign_eight);
+
+    let statements = Parser::new(&tokens).parse().unwrap();
+
+    assert_eq!(
+        ASTStringVisitor {
+            statements: &[expected_ast],
+        }.to_string(),
+        ASTStringVisitor {
+            statements: &statements,
+        }.to_string()
+    );
+}

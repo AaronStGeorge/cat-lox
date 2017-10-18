@@ -153,7 +153,27 @@ impl<'a> Parser<'a> {
     }
 
     fn expression(&self) -> Result<Expression, &'static str> {
-        self.equality()
+        self.assignment()
+    }
+
+    fn assignment(&self) -> Result<Expression, &'static str> {
+        let expr = self.equality()?;
+
+        if let Some(t) = match self.peek() {
+            Some(t) if *t == Token::Assign => self.advance(),
+            _ => None,
+        } {
+            let value = self.assignment()?;
+
+            match expr {
+                Expression::Variable(token) => {
+                    return Ok(Expression::Assignment(token, Box::new(value)))
+                }
+                _ => return Err("Are you trying to assign something? Get it the fuck right!"),
+            }
+        }
+
+        Ok(expr)
     }
 
     fn equality(&self) -> Result<Expression, &'static str> {
