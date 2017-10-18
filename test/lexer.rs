@@ -1,6 +1,6 @@
-extern crate poople;
+extern crate catbox;
 
-use poople::lexer::*
+use catbox::lexer::*
 
 #[test]
 fn it_works() {

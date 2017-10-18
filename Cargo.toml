@@ -1,11 +1,11 @@
 [package]
-name = "poople"
+name = "catbox"
 version = "0.1.0"
 authors = ["aaron"]
 
 [[bin]]
 doc = false
-name = "poople"
+name = "catbox"
 path = "src/main.rs"
 
 [dependencies]

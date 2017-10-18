@@ -1,9 +1,9 @@
-extern crate poople;
+extern crate catbox;
 
 use std::io;
 use std::env;
 
-use poople::repl;
+use catbox::repl;
 
 fn main() {
     println!(
