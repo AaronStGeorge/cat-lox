@@ -131,7 +131,7 @@ fn interpreter_test_5() {
 // writer that just wrote to a string. Then each test could check a print
 // statement.
 #[test]
-fn  variable_declaration_test_1() {
+fn variable_declaration_test_1() {
     // Test for the results of interpreting the following statement:
     // let a = 2;
     // Then evaluating the following expression:
