@@ -272,7 +272,12 @@ fn parser_assignment_test() {
     let a_token = Token::Ident("a".to_string());
     let eight_token = Token::Number(8.0);
 
-    let tokens = vec![a_token.clone(), Token::Assign, eight_token.clone() ,Token::Semicolon];
+    let tokens = vec![
+        a_token.clone(),
+        Token::Assign,
+        eight_token.clone(),
+        Token::Semicolon,
+    ];
 
     let eight_expr = Expression::Literal(eight_token);
 

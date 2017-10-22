@@ -159,8 +159,8 @@ impl<'a> Parser<'a> {
     fn assignment(&self) -> Result<Expression, &'static str> {
         let expr = self.equality()?;
 
-        if let Some(t) = match self.peek() {
-            Some(t) if *t == Token::Assign => self.advance(),
+        if let Some(_) = match self.peek() {
+            Some(&Token::Assign) => self.advance(),
             _ => None,
         } {
             let value = self.assignment()?;
@@ -180,7 +180,7 @@ impl<'a> Parser<'a> {
         let mut expr = self.comparison()?;
 
         while let Some(t) = match self.peek() {
-            Some(t) if *t == Token::Equal || *t == Token::NotEqual => self.advance(),
+            Some(&Token::Equal) | Some(&Token::NotEqual) => self.advance(),
             _ => None,
         } {
             let right = self.comparison()?;
@@ -194,12 +194,11 @@ impl<'a> Parser<'a> {
         let mut expr = self.addition()?;
 
         while let Some(t) = match self.peek() {
-            Some(t)
-                if *t == Token::Equal || *t == Token::GreaterThan || *t == Token::GreaterEqual
-                    || *t == Token::LessThan || *t == Token::LessEqual =>
-            {
-                self.advance()
-            }
+            Some(&Token::Equal) |
+            Some(&Token::GreaterThan) |
+            Some(&Token::GreaterEqual) |
+            Some(&Token::LessThan) |
+            Some(&Token::LessEqual) => self.advance(),
             _ => None,
         } {
             let right = self.addition()?;
@@ -213,7 +212,7 @@ impl<'a> Parser<'a> {
         let mut expr = self.multiplication()?;
 
         while let Some(t) = match self.peek() {
-            Some(t) if *t == Token::Minus || *t == Token::Plus => self.advance(),
+            Some(&Token::Minus) | Some(&Token::Plus) => self.advance(),
             _ => None,
         } {
             let right = self.multiplication()?;
@@ -227,7 +226,7 @@ impl<'a> Parser<'a> {
         let mut expr = self.unary()?;
 
         while let Some(t) = match self.peek() {
-            Some(t) if *t == Token::Slash || *t == Token::Asterisk => self.advance(),
+            Some(&Token::Slash) | Some(&Token::Asterisk) => self.advance(),
             _ => None,
         } {
             let right = self.unary()?;
