@@ -154,3 +154,36 @@ fn variable_declaration_test_1() {
     assert_eq!(interpreter_result.is_ok(), true);
     assert_eq!(format!("{}", interpreter_result.unwrap()), "2");
 }
+
+#[test]
+fn variable_assignment_test_1() {
+    // Test for the results of interpreting the following statement:
+    // let a = 2;
+    // a = 3;
+    // Then evaluating the following expression:
+    // a
+
+    let mut interpreter = Interpreter::new();
+
+    let a_token = Token::Ident(String::from("a"));
+    let two_token = Token::Number(2.0);
+    let three_token = Token::Number(3.0);
+
+    let two_expr = Expression::Literal(two_token);
+    let three_expr = Expression::Literal(three_token);
+
+    let assignment_expr = Expression::Assignment(a_token.clone(), Box::new(three_expr));
+
+    let variable_declaration_stmt = Statement::VariableDeclaration(a_token.clone(), Some(two_expr));
+    let assignment_stmt = Statement::Expression(assignment_expr);
+
+    let interpreter_result = interpreter.interpret(&[variable_declaration_stmt, assignment_stmt]);
+
+    assert_eq!(interpreter_result.is_ok(), true);
+
+    let expression_ast = Expression::Variable(a_token);
+
+    let interpreter_result = interpreter.evaluate(&expression_ast);
+    assert_eq!(interpreter_result.is_ok(), true);
+    assert_eq!(format!("{}", interpreter_result.unwrap()), "3");
+}

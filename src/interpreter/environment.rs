@@ -13,6 +13,21 @@ impl Environment {
         }
     }
 
+    pub fn assign(&mut self, name: &Token, value: ExpressionReturn) -> Result<(), String> {
+        match name {
+            &Token::Ident(ref s) => if self.values.contains_key(s) {
+                self.values.insert(s.clone(), Some(value));
+                Ok(())
+            } else {
+                Err(String::from(
+                    "Why the fuck would you try to assign \
+                     to something that hasn't been defined?!?!",
+                ))
+            },
+            _ => unreachable!(),
+        }
+    }
+
     pub fn define(&mut self, name: &Token, value: Option<ExpressionReturn>) -> () {
         match name {
             &Token::Ident(ref s) => {
