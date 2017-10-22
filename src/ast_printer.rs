@@ -31,6 +31,13 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
 
     fn visit_statement(&self, s: &Statement) -> String {
         match *s {
+            Statement::Block(ref statements) => format!(
+                "(Block Statement {})",
+                statements
+                    .iter()
+                    .map(|s| self.visit_statement(s))
+                    .collect::<String>()
+            ),
             Statement::Expression(ref expr) => {
                 format!("(Expression Statement {})", self.visit_expression(expr))
             }

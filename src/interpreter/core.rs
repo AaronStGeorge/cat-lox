@@ -112,6 +112,16 @@ impl MutVisitor for Interpreter {
 
     fn visit_statement(&mut self, s: &Statement) -> Self::S {
         match s {
+            &Statement::Block(ref statements) => {
+                self.environment.open();
+
+                for statement in statements {
+                    self.visit_statement(statement)?;
+                }
+
+                self.environment.close()?;
+                Ok(())
+            }
             &Statement::Print(ref e) => {
                 let result = self.visit_expression(e)?;
                 println!("{}", result);

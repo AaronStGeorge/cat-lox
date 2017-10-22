@@ -97,7 +97,27 @@ impl<'a> Parser<'a> {
                 self.advance();
                 self.print_statement()
             }
+            Some(&Token::LeftBrace) => {
+                self.advance();
+                self.block_statement()
+            }
             _ => self.expr_statement(),
+        }
+    }
+
+    fn block_statement(&self) -> Result<Statement, &'static str> {
+        let mut statements: Vec<Statement> = Vec::new();
+
+        while match self.peek() {
+            Some(&Token::RightBrace) => false,
+            _ => true,
+        } {
+            statements.push(self.declaration()?);
+        }
+
+        match self.advance() {
+            Some(&Token::RightBrace) => Ok(Statement::Block(statements)),
+            _ => Err("You didn't close your fucking block!"),
         }
     }
 
