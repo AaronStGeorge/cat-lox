@@ -1,6 +1,6 @@
 use lexer::Token;
 
-/// Expression types.
+#[derive(Clone, Debug)]
 pub enum Expression {
     Assignment(Token, Box<Expression>),
     Binary(Box<Expression>, Token, Box<Expression>),
@@ -10,6 +10,7 @@ pub enum Expression {
     Variable(Token),
 }
 
+#[derive(Clone, Debug)]
 pub enum Statement {
     Block(Vec<Statement>),
     Print(Expression),

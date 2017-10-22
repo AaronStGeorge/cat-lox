@@ -1,3 +1,5 @@
+use std::io::Cursor;
+
 use ast::*;
 use lexer::*;
 use super::*;
@@ -127,9 +129,6 @@ fn interpreter_test_5() {
     assert_eq!(format!("{}", interpreter_result.unwrap()), "true");
 }
 
-// TODO: These tests could be a bit cleaner if the interpret method took a
-// writer that just wrote to a string. Then each test could check a print
-// statement.
 #[test]
 fn variable_declaration_test_1() {
     // Test for the results of interpreting the following statement:
@@ -144,9 +143,8 @@ fn variable_declaration_test_1() {
     let two_expr = Expression::Literal(two_token);
 
     let statement_ast = Statement::VariableDeclaration(a_token.clone(), Some(two_expr));
-    let interpreter_result = interpreter.interpret(&[statement_ast]);
 
-    assert_eq!(interpreter_result.is_ok(), true);
+    interpreter.interpret(&[statement_ast], &mut Cursor::new(vec![]));
 
     let expression_ast = Expression::Variable(a_token);
 
@@ -177,13 +175,125 @@ fn variable_assignment_test_1() {
     let variable_declaration_stmt = Statement::VariableDeclaration(a_token.clone(), Some(two_expr));
     let assignment_stmt = Statement::Expression(assignment_expr);
 
-    let interpreter_result = interpreter.interpret(&[variable_declaration_stmt, assignment_stmt]);
-
-    assert_eq!(interpreter_result.is_ok(), true);
+    interpreter.interpret(
+        &[variable_declaration_stmt, assignment_stmt],
+        &mut Cursor::new(vec![]),
+    );
 
     let expression_ast = Expression::Variable(a_token);
 
     let interpreter_result = interpreter.evaluate(&expression_ast);
     assert_eq!(interpreter_result.is_ok(), true);
     assert_eq!(format!("{}", interpreter_result.unwrap()), "3");
+}
+
+#[test]
+fn scope_test_1() {
+    // Test for the results of interpreting the following program:
+    // var a = "global a";
+    // var b = "global b";
+    // var c = "global c";
+    // {
+    //   var a = "outer a";
+    //   var b = "outer b";
+    //   {
+    //     var a = "inner a";
+    //     print a;
+    //     print b;
+    //     print c;
+    //   }
+    //   print a;
+    //   print b;
+    //   print c;
+    // }
+    // print a;
+    // print b;
+    // print c;
+
+    let a_token = Token::Ident(String::from("a"));
+    let b_token = Token::Ident(String::from("b"));
+    let c_token = Token::Ident(String::from("c"));
+
+    let a_var_expr = Expression::Variable(a_token.clone());
+    let b_var_expr = Expression::Variable(b_token.clone());
+    let c_var_expr = Expression::Variable(c_token.clone());
+
+
+    let global_a_token = Token::LoxString(String::from("global a"));
+    let global_b_token = Token::LoxString(String::from("global b"));
+    let global_c_token = Token::LoxString(String::from("global c"));
+
+    let global_a_expr = Expression::Literal(global_a_token);
+    let global_b_expr = Expression::Literal(global_b_token);
+    let global_c_expr = Expression::Literal(global_c_token);
+
+    let global_a_declaration = Statement::VariableDeclaration(a_token.clone(), Some(global_a_expr));
+    let global_b_declaration = Statement::VariableDeclaration(b_token.clone(), Some(global_b_expr));
+    let global_c_declaration = Statement::VariableDeclaration(c_token.clone(), Some(global_c_expr));
+
+
+    let outer_a_token = Token::LoxString(String::from("outer a"));
+    let outer_b_token = Token::LoxString(String::from("outer b"));
+
+    let outer_a_expr = Expression::Literal(outer_a_token);
+    let outer_b_expr = Expression::Literal(outer_b_token);
+
+    let outer_a_declaration = Statement::VariableDeclaration(a_token.clone(), Some(outer_a_expr));
+    let outer_b_declaration = Statement::VariableDeclaration(b_token.clone(), Some(outer_b_expr));
+
+
+    let inner_a_token = Token::LoxString(String::from("inner a"));
+    let inner_a_expr = Expression::Literal(inner_a_token);
+    let inner_a_declaration = Statement::VariableDeclaration(a_token.clone(), Some(inner_a_expr));
+
+
+    let print_a = Statement::Print(a_var_expr);
+    let print_b = Statement::Print(b_var_expr);
+    let print_c = Statement::Print(c_var_expr);
+
+    let inner_block = Statement::Block(vec![
+        inner_a_declaration,
+        print_a.clone(),
+        print_b.clone(),
+        print_c.clone(),
+    ]);
+
+    let outer_block = Statement::Block(vec![
+        outer_a_declaration,
+        outer_b_declaration,
+        inner_block,
+        print_a.clone(),
+        print_b.clone(),
+        print_c.clone(),
+    ]);
+
+    let statements = vec![
+        global_a_declaration,
+        global_b_declaration,
+        global_c_declaration,
+        outer_block,
+        print_a,
+        print_b,
+        print_c,
+    ];
+
+    let mut interpreter = Interpreter::new();
+    let mut buff = Cursor::new(vec![]);
+
+    interpreter.interpret(&statements, &mut buff);
+
+    let output = String::from_utf8(buff.into_inner()).unwrap();
+
+    let expected_output = r#""inner a"
+"outer b"
+"global c"
+"outer a"
+"outer b"
+"global c"
+"global a"
+"global b"
+"global c"
+"#;
+
+    assert_eq!(output, expected_output);
 }

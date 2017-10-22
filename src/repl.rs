@@ -42,10 +42,7 @@ pub fn start(stdin: io::Stdin, mut stdout: io::Stdout, is_debug: bool) -> io::Re
             println!("Output ----");
         }
 
-        match interpreter.interpret(&statements) {
-            Ok(_) => (),
-            Err(err) => println!("Run Time Error: {}", err),
-        }
+        interpreter.interpret(&statements, &mut stdout);
 
         stdout.flush()?;
     }

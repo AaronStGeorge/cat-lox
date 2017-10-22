@@ -1,6 +1,7 @@
+use std;
+
 use ast::*;
 use lexer::*;
-use std::fmt;
 use super::environment::Environment;
 
 pub struct Interpreter {
@@ -20,12 +21,16 @@ impl Interpreter {
         self.visit_expression(e)
     }
 
-    pub fn interpret(&mut self, program: &[Statement]) -> Result<(), String> {
+    pub fn interpret<W: std::io::Write>(&mut self, program: &[Statement], w: &mut W) {
         for s in program {
-            self.visit_statement(s)?;
+            match self.visit_statement(s, w) {
+                Ok(()) => (),
+                Err(err) => {
+                    write!(w, "Run Time Error: {}", err).unwrap();
+                    return;
+                }
+            }
         }
-
-        Ok(())
     }
 }
 
@@ -110,13 +115,13 @@ impl MutVisitor for Interpreter {
         }
     }
 
-    fn visit_statement(&mut self, s: &Statement) -> Self::S {
+    fn visit_statement<W: std::io::Write>(&mut self, s: &Statement, w: &mut W) -> Self::S {
         match s {
             &Statement::Block(ref statements) => {
                 self.environment.open();
 
                 for statement in statements {
-                    self.visit_statement(statement)?;
+                    self.visit_statement(statement, w)?;
                 }
 
                 self.environment.close()?;
@@ -124,7 +129,7 @@ impl MutVisitor for Interpreter {
             }
             &Statement::Print(ref e) => {
                 let result = self.visit_expression(e)?;
-                println!("{}", result);
+                writeln!(w, "{}", result).unwrap();
                 Ok(())
             }
             &Statement::Expression(ref e) => {
@@ -151,8 +156,8 @@ pub enum ExpressionReturn {
     Nil,
 }
 
-impl fmt::Display for ExpressionReturn {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl std::fmt::Display for ExpressionReturn {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             &ExpressionReturn::Number(n) => write!(f, "{}", n),
             &ExpressionReturn::Boolean(b) => write!(f, "{}", b),
