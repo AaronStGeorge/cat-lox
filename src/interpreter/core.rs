@@ -117,12 +117,12 @@ impl MutVisitor for Interpreter {
                 self.visit_expression(e)?;
                 Ok(())
             }
-            &Statement::VariableDeclaration(ref name, ref initializer) => match initializer {
+            &Statement::VariableDeclaration(ref token, ref initializer) => match initializer {
                 &Some(ref e) => {
                     let result = self.visit_expression(e)?;
-                    Ok(self.environment.define(name.clone(), Some(result)))
+                    Ok(self.environment.define(token, Some(result)))
                 }
-                &None => Ok(self.environment.define(name.clone(), None)),
+                &None => Ok(self.environment.define(token, None)),
             },
         }
     }

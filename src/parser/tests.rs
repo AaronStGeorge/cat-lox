@@ -183,12 +183,13 @@ fn parser_variable_declaration_test_1() {
     // Test for the results of parsing the following program:
     // let a = 1 + 2;
 
+    let a_token = Token::Ident(String::from("a"));
     let one_token = Token::Number(1.0);
     let two_token = Token::Number(2.0);
 
     let tokens = vec![
         Token::Let,
-        Token::Ident("a".to_string()),
+        a_token.clone(),
         Token::Assign,
         one_token.clone(),
         Token::Plus,
@@ -201,7 +202,7 @@ fn parser_variable_declaration_test_1() {
 
     let one_plus_two = Expression::Binary(Box::new(one_expr), Token::Plus, Box::new(two_expr));
 
-    let expected_ast = Statement::VariableDeclaration("a".to_string(), Some(one_plus_two));
+    let expected_ast = Statement::VariableDeclaration(a_token, Some(one_plus_two));
 
     let statements = Parser::new(&tokens).parse().unwrap();
 
@@ -224,7 +225,7 @@ fn parser_variable_declaration_test_2() {
 
     let tokens = vec![Token::Let, a_token.clone(), Token::Semicolon];
 
-    let expected_ast = Statement::VariableDeclaration(String::from("a"), None);
+    let expected_ast = Statement::VariableDeclaration(a_token, None);
 
     let statements = Parser::new(&tokens).parse().unwrap();
 

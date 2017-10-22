@@ -37,9 +37,9 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
             Statement::Print(ref expr) => {
                 format!("(Print Statement {})", self.visit_expression(expr))
             }
-            Statement::VariableDeclaration(ref name, ref expr) => format!(
-                "(VariableDeclaration Statement {} {})",
-                name,
+            Statement::VariableDeclaration(ref token, ref expr) => format!(
+                "(VariableDeclaration Statement {:?} {})",
+                token,
                 match expr {
                     &Some(ref expr) => self.visit_expression(expr),
                     &None => "nil".to_string(),

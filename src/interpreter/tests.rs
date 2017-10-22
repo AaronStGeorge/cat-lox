@@ -139,15 +139,15 @@ fn variable_declaration_test_1() {
 
     let mut interpreter = Interpreter::new();
 
+    let a_token = Token::Ident(String::from("a"));
     let two_token = Token::Number(2.0);
     let two_expr = Expression::Literal(two_token);
 
-    let statement_ast = Statement::VariableDeclaration(String::from("a"), Some(two_expr));
+    let statement_ast = Statement::VariableDeclaration(a_token.clone(), Some(two_expr));
     let interpreter_result = interpreter.interpret(&[statement_ast]);
 
     assert_eq!(interpreter_result.is_ok(), true);
 
-    let a_token = Token::Ident(String::from("a"));
     let expression_ast = Expression::Variable(a_token);
 
     let interpreter_result = interpreter.evaluate(&expression_ast);

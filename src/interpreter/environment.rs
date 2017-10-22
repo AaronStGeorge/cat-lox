@@ -13,8 +13,13 @@ impl Environment {
         }
     }
 
-    pub fn define(&mut self, name: String, value: Option<ExpressionReturn>) -> () {
-        self.values.insert(name, value);
+    pub fn define(&mut self, name: &Token, value: Option<ExpressionReturn>) -> () {
+        match name {
+            &Token::Ident(ref s) => {
+                self.values.insert(s.clone(), value);
+            }
+            _ => unreachable!(),
+        }
     }
 
     pub fn get(&self, name: &Token) -> Result<Option<ExpressionReturn>, String> {
