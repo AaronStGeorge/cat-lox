@@ -37,7 +37,7 @@ impl MutVisitor for Interpreter {
         match e {
             &Expression::Assignment(ref token, ref expr) => {
                 let value = self.visit_expression(expr)?;
-                self.environment.assign(token, value.clone())?;
+                self.environment.assign(&token, value.clone())?;
                 Ok(value)
             }
             &Expression::Binary(ref l_expr, ref token, ref r_expr) => {
@@ -103,7 +103,7 @@ impl MutVisitor for Interpreter {
                     _ => Err(String::from("🖕🖕🖕🖕")),
                 }
             }
-            &Expression::Variable(ref s) => match self.environment.get(s)? {
+            &Expression::Variable(ref token) => match self.environment.get(token)? {
                 Some(e) => Ok(e),
                 None => Ok(ExpressionReturn::Nil),
             },
@@ -124,9 +124,9 @@ impl MutVisitor for Interpreter {
             &Statement::VariableDeclaration(ref token, ref initializer) => match initializer {
                 &Some(ref e) => {
                     let result = self.visit_expression(e)?;
-                    Ok(self.environment.define(token, Some(result)))
+                    Ok(self.environment.define(&token, Some(result)))
                 }
-                &None => Ok(self.environment.define(token, None)),
+                &None => Ok(self.environment.define(&token, None)),
             },
         }
     }
