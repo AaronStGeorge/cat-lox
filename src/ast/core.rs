@@ -6,6 +6,7 @@ pub enum Expression {
     Binary(Box<Expression>, Token, Box<Expression>),
     Grouping(Box<Expression>),
     Literal(Token),
+    Logical(Box<Expression>, Token, Box<Expression>),
     Unary(Token, Box<Expression>),
     Variable(Token),
 }

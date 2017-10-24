@@ -209,7 +209,7 @@ impl<'a> Parser<'a> {
     }
 
     fn assignment(&self) -> Result<Expression, &'static str> {
-        let expr = self.equality()?;
+        let expr = self.or()?;
 
         if let Some(_) = match self.peek() {
             Some(&Token::Assign) => self.advance(),
@@ -223,6 +223,34 @@ impl<'a> Parser<'a> {
                 }
                 _ => return Err("Are you trying to assign something? Get it the fuck right!"),
             }
+        }
+
+        Ok(expr)
+    }
+
+    fn or(&self) -> Result<Expression, &'static str> {
+        let mut expr = self.and()?;
+
+        while let Some(t) = match self.peek() {
+            Some(&Token::LogicOr) => self.advance(),
+            _ => None,
+        } {
+            let right = self.and()?;
+            expr = Expression::Logical(Box::new(expr), t.clone(), Box::new(right));
+        }
+
+        Ok(expr)
+    }
+
+    fn and(&self) -> Result<Expression, &'static str> {
+        let mut expr = self.equality()?;
+
+        while let Some(t) = match self.peek() {
+            Some(&Token::LogicAnd) => self.advance(),
+            _ => None,
+        } {
+            let right = self.equality()?;
+            expr = Expression::Logical(Box::new(expr), t.clone(), Box::new(right));
         }
 
         Ok(expr)

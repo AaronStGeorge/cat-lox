@@ -371,3 +371,52 @@ fn if_test() {
         }.to_string()
     );
 }
+
+#[test]
+fn logical_test() {
+    // Test for the results of parsing the following program:
+    // true and false or true and true;
+
+    let tokens = vec![
+        Token::True,
+        Token::LogicAnd,
+        Token::False,
+        Token::LogicOr,
+        Token::True,
+        Token::LogicAnd,
+        Token::True,
+        Token::Semicolon,
+    ];
+
+    let true_expr = Expression::Literal(Token::True);
+    let false_expr = Expression::Literal(Token::False);
+
+    let true_and_false = Expression::Logical(
+        Box::new(true_expr.clone()),
+        Token::LogicAnd,
+        Box::new(false_expr.clone()),
+    );
+    let true_and_true = Expression::Logical(
+        Box::new(true_expr.clone()),
+        Token::LogicAnd,
+        Box::new(true_expr.clone()),
+    );
+    let true_and_false_or_true_and_true = Expression::Logical(
+        Box::new(true_and_false),
+        Token::LogicOrgs,
+        Box::new(true_and_true),
+    );
+
+    let expected_ast = Statement::Expression(true_and_false_or_true_and_true);
+
+    let statements = Parser::new(&tokens).parse().unwrap();
+
+    assert_eq!(
+        ASTStringVisitor {
+            statements: &[expected_ast],
+        }.to_string(),
+        ASTStringVisitor {
+            statements: &statements,
+        }.to_string()
+    );
+}

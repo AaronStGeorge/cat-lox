@@ -22,6 +22,12 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
             ),
             Expression::Grouping(ref expr) => format!("(Grouping {})", self.visit_expression(expr)),
             Expression::Literal(ref token) => format!("(Literal {:?})", token),
+            Expression::Logical(ref expr1, ref token, ref expr2) => format!(
+                "(Logical {:?} {} {})",
+                token,
+                self.visit_expression(expr1),
+                self.visit_expression(expr2)
+            ),
             Expression::Unary(ref token, ref expr) => {
                 format!("(Unary {:?} {})", token, self.visit_expression(expr))
             }
