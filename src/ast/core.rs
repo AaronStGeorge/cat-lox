@@ -13,7 +13,8 @@ pub enum Expression {
 #[derive(Clone, Debug)]
 pub enum Statement {
     Block(Vec<Statement>),
-    Print(Expression),
     Expression(Expression),
+    If(Expression, Box<Statement>, Option<Box<Statement>>),
+    Print(Expression),
     VariableDeclaration(Token, Option<Expression>),
 }

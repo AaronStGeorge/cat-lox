@@ -26,7 +26,7 @@ impl Interpreter {
             match self.visit_statement(s, w) {
                 Ok(()) => (),
                 Err(err) => {
-                    write!(w, "Run Time Error: {}", err).unwrap();
+                    writeln!(w, "Run Time Error: {}", err).unwrap();
                     return;
                 }
             }
@@ -127,13 +127,14 @@ impl MutVisitor for Interpreter {
                 self.environment.close()?;
                 Ok(())
             }
+            &Statement::Expression(ref e) => {
+                self.visit_expression(e)?;
+                Ok(())
+            }
+            &Statement::If(ref conditional, ref __, ref ___) => unimplemented!(),
             &Statement::Print(ref e) => {
                 let result = self.visit_expression(e)?;
                 writeln!(w, "{}", result).unwrap();
-                Ok(())
-            }
-            &Statement::Expression(ref e) => {
-                self.visit_expression(e)?;
                 Ok(())
             }
             &Statement::VariableDeclaration(ref token, ref initializer) => match initializer {

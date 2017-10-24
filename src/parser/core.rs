@@ -84,6 +84,8 @@ impl<'a> Parser<'a> {
         }
     }
 
+    // Statements ==================================================================================
+
     fn declaration(&self) -> Result<Statement, &'static str> {
         match self.peek() {
             Some(&Token::Let) => self.var_declaration(),
@@ -93,15 +95,48 @@ impl<'a> Parser<'a> {
 
     fn statement(&self) -> Result<Statement, &'static str> {
         match self.peek() {
-            Some(&Token::Print) => {
+            Some(&Token::If) => {
                 self.advance();
-                self.print_statement()
+                self.if_statement()
             }
             Some(&Token::LeftBrace) => {
                 self.advance();
                 self.block_statement()
             }
+            Some(&Token::Print) => {
+                self.advance();
+                self.print_statement()
+            }
             _ => self.expr_statement(),
+        }
+    }
+
+    fn if_statement(&self) -> Result<Statement, &'static str> {
+        // Fail if there isn't a left parentheses
+        // TODO: Write a macro for this
+        match self.advance() {
+            Some(&Token::LeftParentheses) => (),
+            _ => return Err("You need a fucking left parentheses dummy."),
+        }
+        let condition = self.expression()?;
+        // Fail if there isn't a right parentheses
+        match self.advance() {
+            Some(&Token::RightParentheses) => (),
+            _ => return Err("Conditionals have to be surrounded with parentheses dummy."),
+        }
+
+        let then_branch = self.statement()?;
+        match self.peek() {
+            Some(&Token::Else) => {
+                self.advance();
+                let else_branch = self.statement()?;
+                Ok(Statement::If(
+                    condition,
+                    Box::new(then_branch),
+                    Some(Box::new(else_branch)),
+                ))
+            }
+            _ => Ok(Statement::If(condition, Box::new(then_branch), None)),
         }
     }
 
@@ -166,6 +201,8 @@ impl<'a> Parser<'a> {
             _ => Err("Are you trying to write let a; and failing? Jesus."),
         }
     }
+
+    // Expressions =================================================================================
 
     fn expression(&self) -> Result<Expression, &'static str> {
         self.assignment()

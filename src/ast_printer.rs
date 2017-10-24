@@ -41,6 +41,15 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
             Statement::Expression(ref expr) => {
                 format!("(Expression Statement {})", self.visit_expression(expr))
             }
+            Statement::If(ref conditional, ref then_stmt, ref else_stmt) => format!(
+                "(If Statement {} {} {})",
+                self.visit_expression(conditional),
+                self.visit_statement(then_stmt),
+                match else_stmt {
+                    &Some(ref inner_else) => self.visit_statement(inner_else),
+                    &None => String::from(""),
+                }
+            ),
             Statement::Print(ref expr) => {
                 format!("(Print Statement {})", self.visit_expression(expr))
             }

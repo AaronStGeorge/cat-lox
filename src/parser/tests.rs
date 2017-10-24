@@ -334,3 +334,43 @@ fn block_test() {
         }.to_string()
     );
 }
+
+#[test]
+fn if_test() {
+    // Test for the results of parsing the following program:
+    // if (true) print true; else print false;
+
+    let a_token = Token::Ident("a".to_string());
+    let eight_token = Token::Number(8.0);
+
+    let tokens = vec![
+        Token::If,
+        Token::LeftParentheses,
+        Token::True,
+        Token::RightParentheses,
+        Token::Print,
+        Token::True,
+        Token::Semicolon,
+        Token::Else,
+        Token::Print,
+        Token::False,
+        Token::Semicolon,
+    ];
+
+    let conditional = Expression::Literal(Token::True);
+    let then_stmt = Statement::Print(Expression::Literal(Token::True));
+    let else_stmt = Statement::Print(Expression::Literal(Token::False));
+
+    let expected_ast = Statement::If(conditional, Box::new(then_stmt), Some(Box::new(else_stmt)));
+
+    let statements = Parser::new(&tokens).parse().unwrap();
+
+    assert_eq!(
+        ASTStringVisitor {
+            statements: &[expected_ast],
+        }.to_string(),
+        ASTStringVisitor {
+            statements: &statements,
+        }.to_string()
+    );
+}
