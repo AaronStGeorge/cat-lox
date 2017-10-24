@@ -21,7 +21,7 @@ fn lexer_test() {
     // Comment the fuck out of this bullshit == +++
     5 < 10 > 5;
 
-    if (5 < 10) {
+    if (5 < 10 and 8 > 9) {
 	    return true;
     } else {
 	    return false;
@@ -92,6 +92,10 @@ fn lexer_test() {
         Token::Number(5.0),
         Token::LessThan,
         Token::Number(10.0),
+        Token::LogicAnd,
+        Token::Number(8.0),
+        Token::GreaterThan,
+        Token::Number(9.0),
         Token::RightParentheses,
         Token::LeftBrace,
         Token::Return,
@@ -197,6 +201,22 @@ fn lox_print_test() {
         Token::LoxString(" bla! ".to_string()),
         Token::Semicolon,
     ];
+
+    let lexer = Lexer::new(input);
+    let results: Vec<Token> = lexer.collect();
+
+    for (i, tok) in results.iter().enumerate() {
+        assert_eq!(*tok, expected[i]);
+    }
+
+    assert_eq!(results.len(), expected.len());
+}
+
+#[test]
+fn logical_or_test() {
+    let input = "true or false";
+
+    let expected = vec![Token::True, Token::LogicOr, Token::False];
 
     let lexer = Lexer::new(input);
     let results: Vec<Token> = lexer.collect();

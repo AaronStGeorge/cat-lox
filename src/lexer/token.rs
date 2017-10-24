@@ -14,6 +14,9 @@ pub enum Token {
     Minus,
     Plus,
     Slash,
+    // Logic Operators
+    LogicAnd,
+    LogicOr,
     // Order
     LessThan,
     LessEqual,
@@ -45,12 +48,14 @@ pub enum Token {
 
 pub fn keyword(s: &str) -> Option<Token> {
     match s {
+        "and" => Some(Token::LogicAnd),
         "else" => Some(Token::Else),
         "false" => Some(Token::False),
         "fn" => Some(Token::Function),
         "if" => Some(Token::If),
         "let" => Some(Token::Let),
         "nil" => Some(Token::Nil),
+        "or" => Some(Token::LogicOr),
         "print" => Some(Token::Print),
         "return" => Some(Token::Return),
         "true" => Some(Token::True),
