@@ -297,3 +297,49 @@ fn scope_test_1() {
 
     assert_eq!(output, expected_output);
 }
+
+#[test]
+fn if_else_test_1() {
+    // Test for the results of interpreting the following program:
+    // if (true) print true; else print false;
+
+    let conditional = Expression::Literal(Token::True);
+    let then_stmt = Statement::Print(Expression::Literal(Token::True));
+    let else_stmt = Statement::Print(Expression::Literal(Token::False));
+
+    let stmt = Statement::If(conditional, Box::new(then_stmt), Some(Box::new(else_stmt)));
+
+    let mut interpreter = Interpreter::new();
+    let mut buff = Cursor::new(vec![]);
+
+    interpreter.interpret(&[stmt], &mut buff);
+
+    let output = String::from_utf8(buff.into_inner()).unwrap();
+
+    let expected_output = "true\n";
+
+    assert_eq!(output, expected_output);
+}
+
+#[test]
+fn if_else_test_2() {
+    // Test for the results of interpreting the following program:
+    // if (true) print true; else print false;
+
+    let conditional = Expression::Literal(Token::False);
+    let then_stmt = Statement::Print(Expression::Literal(Token::True));
+    let else_stmt = Statement::Print(Expression::Literal(Token::False));
+
+    let stmt = Statement::If(conditional, Box::new(then_stmt), Some(Box::new(else_stmt)));
+
+    let mut interpreter = Interpreter::new();
+    let mut buff = Cursor::new(vec![]);
+
+    interpreter.interpret(&[stmt], &mut buff);
+
+    let output = String::from_utf8(buff.into_inner()).unwrap();
+
+    let expected_output = "false\n";
+
+    assert_eq!(output, expected_output);
+}

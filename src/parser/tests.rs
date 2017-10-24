@@ -340,9 +340,6 @@ fn if_test() {
     // Test for the results of parsing the following program:
     // if (true) print true; else print false;
 
-    let a_token = Token::Ident("a".to_string());
-    let eight_token = Token::Number(8.0);
-
     let tokens = vec![
         Token::If,
         Token::LeftParentheses,

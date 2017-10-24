@@ -131,7 +131,17 @@ impl MutVisitor for Interpreter {
                 self.visit_expression(e)?;
                 Ok(())
             }
-            &Statement::If(ref conditional, ref __, ref ___) => unimplemented!(),
+            &Statement::If(ref conditional, ref then_stmt, ref else_option) => {
+                if is_truthy(&self.visit_expression(conditional)?) {
+                    self.visit_statement(then_stmt, w)?;
+                } else {
+                    if let &Some(ref else_stmt) = else_option {
+                        self.visit_statement(else_stmt, w)?;
+                    }
+                }
+
+                Ok(())
+            }
             &Statement::Print(ref e) => {
                 let result = self.visit_expression(e)?;
                 writeln!(w, "{}", result).unwrap();
@@ -165,5 +175,12 @@ impl std::fmt::Display for ExpressionReturn {
             &ExpressionReturn::ReturnString(ref s) => write!(f, "\"{}\"", s.to_string()),
             &ExpressionReturn::Nil => write!(f, "nil"),
         }
+    }
+}
+
+fn is_truthy(expression_return: &ExpressionReturn) -> bool {
+    match expression_return {
+        &ExpressionReturn::Nil | &ExpressionReturn::Boolean(false) => false,
+        _ => true,
     }
 }
