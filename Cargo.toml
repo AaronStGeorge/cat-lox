@@ -9,3 +9,4 @@ name = "catbox"
 path = "src/main.rs"
 
 [dependencies]
+liner = "0.4.2"

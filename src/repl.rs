@@ -1,49 +1,67 @@
-use std::io::{self, Write};
+extern crate liner;
+
+use std::io;
+
+use self::liner::Context;
 
 use ast_printer::*;
 use lexer::*;
 use parser::*;
 use interpreter::*;
 
-static PROMPT: &'static str = ">> ";
-
-pub fn start(stdin: io::Stdin, mut stdout: io::Stdout, is_debug: bool) -> io::Result<()> {
+pub fn start(mut stdout: io::Stdout, is_debug: bool) -> io::Result<()> {
     let mut interpreter = Interpreter::new();
 
+
+    let mut con = Context::new();
+
     loop {
-        // Write prompt
-        stdout.write(PROMPT.as_bytes())?;
-        stdout.flush()?;
+        let res = con.read_line("> ", &mut |_| {});
 
-        // Read input
-        let mut buffer = String::new();
-        stdin.read_line(&mut buffer)?;
+        match res {
+            Ok(res) => {
 
-        // Write the results of lexing
-        let tokens: Vec<Token> = Lexer::new(&buffer).collect();
+                let tokens: Vec<Token> = Lexer::new(&res).collect();
 
-        if is_debug {
-            println!("Tokens ----");
-            for t in &tokens {
-                println!("{:?}", t);
+                if is_debug {
+                    println!("Tokens ----");
+                    for t in &tokens {
+                        println!("{:?}", t);
+                    }
+                }
+
+                let statements = Parser::new(&tokens).parse().unwrap();
+
+                if is_debug {
+                    println!("AST ----");
+                    println!(
+                        "{}",
+                        ASTStringVisitor {
+                            statements: &statements,
+                        }
+                    );
+                    println!("Output ----");
+                }
+
+                interpreter.interpret(&statements, &mut stdout);
+
+
+                con.history.push(res.into())?;
+            }
+            Err(e) => {
+                match e.kind() {
+                    // ctrl-d or ctrl-c pressed
+                    io::ErrorKind::UnexpectedEof | io::ErrorKind::Interrupted => {
+                        println!("exiting...");
+                        break;
+                    }
+                    _ => {
+                        panic!("error: {:?}", e)
+                    }
+                }
             }
         }
-
-        let statements = Parser::new(&tokens).parse().unwrap();
-
-        if is_debug {
-            println!("AST ----");
-            println!(
-                "{}",
-                ASTStringVisitor {
-                    statements: &statements,
-                }
-            );
-            println!("Output ----");
-        }
-
-        interpreter.interpret(&statements, &mut stdout);
-
-        stdout.flush()?;
     }
+
+    Ok(())
 }

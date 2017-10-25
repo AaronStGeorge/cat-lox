@@ -1,4 +1,5 @@
 extern crate catbox;
+extern crate liner;
 
 use std::io;
 use std::env;
@@ -33,5 +34,5 @@ catbox is free software with ABSOLUTELY NO WARRANTY.
     let args: Vec<String> = env::args().collect();
     let is_debug = args.len() >= 2 && args[1] == String::from("debug");
 
-    repl::start(io::stdin(), io::stdout(), is_debug).unwrap();
+    repl::start(io::stdout(), is_debug).unwrap();
 }
