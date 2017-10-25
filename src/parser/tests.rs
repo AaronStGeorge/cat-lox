@@ -403,7 +403,7 @@ fn logical_test() {
     );
     let true_and_false_or_true_and_true = Expression::Logical(
         Box::new(true_and_false),
-        Token::LogicOrgs,
+        Token::LogicOr,
         Box::new(true_and_true),
     );
 

@@ -343,3 +343,33 @@ fn if_else_test_2() {
 
     assert_eq!(output, expected_output);
 }
+
+#[test]
+fn logical_test_1() {
+    // Test for the results of interpreting the following expression:
+    // true and false
+
+    let true_expr = Expression::Literal(Token::True);
+    let false_expr = Expression::Literal(Token::False);
+
+    let ast = Expression::Logical(Box::new(true_expr), Token::LogicAnd, Box::new(false_expr));
+
+    let interpreter_result = Interpreter::new().evaluate(&ast);
+    assert_eq!(interpreter_result.is_ok(), true);
+    assert_eq!(format!("{}", interpreter_result.unwrap()), "false");
+}
+
+#[test]
+fn logical_test_2() {
+    // Test for the results of interpreting the following expression:
+    // true or false
+
+    let true_expr = Expression::Literal(Token::True);
+    let false_expr = Expression::Literal(Token::False);
+
+    let ast = Expression::Logical(Box::new(true_expr), Token::LogicOr, Box::new(false_expr));
+
+    let interpreter_result = Interpreter::new().evaluate(&ast);
+    assert_eq!(interpreter_result.is_ok(), true);
+    assert_eq!(format!("{}", interpreter_result.unwrap()), "true");
+}

@@ -96,7 +96,21 @@ impl MutVisitor for Interpreter {
                 Token::LoxString(s) => Ok(ExpressionReturn::ReturnString(s)),
                 _ => Err(String::from("🐑💨")),
             },
-            &Expression::Logical(ref l_expr, ref token, ref r_expr) => unimplemented!(),
+            &Expression::Logical(ref l_expr, ref token, ref r_expr) => {
+                let left_result = self.visit_expression(l_expr)?;
+
+                if token == &Token::LogicOr {
+                    if is_truthy(&left_result) {
+                        return Ok(left_result);
+                    }
+                } else {
+                    if !is_truthy(&left_result) {
+                        return Ok(left_result);
+                    }
+                }
+
+                self.visit_expression(r_expr)
+            }
             &Expression::Unary(ref t, ref e) => {
                 let right = self.visit_expression(e)?;
                 match (right, t.clone()) {
