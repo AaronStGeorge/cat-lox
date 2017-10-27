@@ -20,7 +20,6 @@ pub fn start(mut stdout: io::Stdout, is_debug: bool) -> io::Result<()> {
 
         match res {
             Ok(res) => {
-
                 let tokens: Vec<Token> = Lexer::new(&res).collect();
 
                 if is_debug {
@@ -30,21 +29,23 @@ pub fn start(mut stdout: io::Stdout, is_debug: bool) -> io::Result<()> {
                     }
                 }
 
-                let statements = Parser::new(&tokens).parse().unwrap();
-
-                if is_debug {
-                    println!("AST ----");
-                    println!(
-                        "{}",
-                        ASTStringVisitor {
-                            statements: &statements,
+                match Parser::new(&tokens).parse() {
+                    Ok(statements) => {
+                        if is_debug {
+                            println!("AST ----");
+                            println!(
+                                "{}",
+                                ASTStringVisitor {
+                                    statements: &statements,
+                                }
+                            );
+                            println!("Output ----");
                         }
-                    );
-                    println!("Output ----");
+
+                        interpreter.interpret(&statements, &mut stdout);
+                    }
+                    Err(err) => println!("Parse Error: {}", err),
                 }
-
-                interpreter.interpret(&statements, &mut stdout);
-
 
                 con.history.push(res.into())?;
             }
@@ -55,9 +56,7 @@ pub fn start(mut stdout: io::Stdout, is_debug: bool) -> io::Result<()> {
                         println!("exiting...");
                         break;
                     }
-                    _ => {
-                        panic!("error: {:?}", e)
-                    }
+                    _ => panic!("error: {:?}", e),
                 }
             }
         }

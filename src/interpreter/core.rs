@@ -27,7 +27,6 @@ impl Interpreter {
                 Ok(()) => (),
                 Err(err) => {
                     writeln!(w, "Run Time Error: {}", err).unwrap();
-                    return;
                 }
             }
         }
