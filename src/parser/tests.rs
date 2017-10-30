@@ -420,3 +420,38 @@ fn logical_test() {
         }.to_string()
     );
 }
+
+#[test]
+fn while_test() {
+    // Test for the results of parsing the following program:
+    // while (true) { print true; }
+
+    let tokens = vec![
+        Token::While,
+        Token::LeftParentheses,
+        Token::True,
+        Token::RightParentheses,
+        Token::LeftBrace,
+        Token::Print,
+        Token::True,
+        Token::Semicolon,
+        Token::RightBrace,
+    ];
+
+    let conditional = Expression::Literal(Token::True);
+    let print_true = Statement::Print(Expression::Literal(Token::True));
+    let body = Statement::Block(vec![print_true]);
+
+    let expected_ast = Statement::While(conditional, Box::new(body));
+
+    let statements = Parser::new(&tokens).parse().unwrap();
+
+    assert_eq!(
+        ASTStringVisitor {
+            statements: &[expected_ast],
+        }.to_string(),
+        ASTStringVisitor {
+            statements: &statements,
+        }.to_string()
+    );
+}

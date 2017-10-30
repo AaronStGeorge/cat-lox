@@ -156,8 +156,8 @@ impl MutVisitor for Interpreter {
 
                 Ok(())
             }
-            &Statement::Print(ref e) => {
-                let result = self.visit_expression(e)?;
+            &Statement::Print(ref expr) => {
+                let result = self.visit_expression(expr)?;
                 writeln!(w, "{}", result).unwrap();
                 Ok(())
             }
@@ -168,6 +168,7 @@ impl MutVisitor for Interpreter {
                 }
                 &None => Ok(self.environment.define(&token, None)),
             },
+            &Statement::While(ref expr, ref stmt) => unimplemented!(),
         }
     }
 }

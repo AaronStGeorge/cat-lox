@@ -67,6 +67,11 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
                     &None => "nil".to_string(),
                 }
             ),
+            Statement::While(ref expr, ref stmt) => format!(
+                "(While Statement {} {})",
+                self.visit_expression(expr),
+                self.visit_statement(stmt)
+            ),
         }
     }
 }

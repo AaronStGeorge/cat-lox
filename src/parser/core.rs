@@ -107,6 +107,10 @@ impl<'a> Parser<'a> {
                 self.advance();
                 self.print_statement()
             }
+            Some(&Token::While) => {
+                self.advance();
+                self.while_statement()
+            }
             _ => self.expr_statement(),
         }
     }
@@ -160,7 +164,7 @@ impl<'a> Parser<'a> {
         let expr = self.expression()?;
 
         match self.peek() {
-            Some(t) if *t == Token::Semicolon => {
+            Some(&Token::Semicolon) => {
                 self.advance();
                 Ok(Statement::Print(expr))
             }
@@ -168,11 +172,33 @@ impl<'a> Parser<'a> {
         }
     }
 
+    fn while_statement(&self) -> Result<Statement, &'static str> {
+        match self.peek() {
+            Some(&Token::LeftParentheses) => {
+                self.advance();
+            }
+            _ => return Err("There should be a left parentheses after the while! Dick."),
+        }
+
+        let condition = self.expression()?;
+
+        match self.peek() {
+            Some(&Token::RightParentheses) => {
+                self.advance();
+            }
+            _ => return Err("There should be a right parentheses after the while! Dick."),
+        }
+
+        let body = self.statement()?;
+
+        Ok(Statement::While(condition, Box::new(body)))
+    }
+
     fn expr_statement(&self) -> Result<Statement, &'static str> {
         let expr = self.expression()?;
 
         match self.peek() {
-            Some(t) if *t == Token::Semicolon => {
+            Some(&Token::Semicolon) => {
                 self.advance();
                 Ok(Statement::Expression(expr))
             }
