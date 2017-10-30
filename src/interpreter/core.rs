@@ -66,9 +66,9 @@ impl MutVisitor for Interpreter {
                             Ok(ExpressionReturn::Number(ln / rn))
                         },
                         Token::GreaterThan => Ok(ExpressionReturn::Boolean(ln > rn)),
-                        Token::GreaterEqual => Ok(ExpressionReturn::Boolean(ln > rn)),
+                        Token::GreaterEqual => Ok(ExpressionReturn::Boolean(ln >= rn)),
                         Token::LessThan => Ok(ExpressionReturn::Boolean(ln > rn)),
-                        Token::LessEqual => Ok(ExpressionReturn::Boolean(ln > rn)),
+                        Token::LessEqual => Ok(ExpressionReturn::Boolean(ln >= rn)),
                         Token::Equal => Ok(ExpressionReturn::Boolean(ln == rn)),
                         Token::NotEqual => Ok(ExpressionReturn::Boolean(ln != rn)),
                         _ => Err(String::from("NO! NO you can't do that! Fuuuuuuck!")),
@@ -168,7 +168,13 @@ impl MutVisitor for Interpreter {
                 }
                 &None => Ok(self.environment.define(&token, None)),
             },
-            &Statement::While(ref expr, ref stmt) => unimplemented!(),
+            &Statement::While(ref expr, ref stmt) => {
+                while is_truthy(&self.visit_expression(expr)?) {
+                    self.visit_statement(stmt, w)?
+                }
+
+                Ok(())
+            }
         }
     }
 }

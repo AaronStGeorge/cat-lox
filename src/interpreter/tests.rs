@@ -373,3 +373,60 @@ fn logical_test_2() {
     assert_eq!(interpreter_result.is_ok(), true);
     assert_eq!(format!("{}", interpreter_result.unwrap()), "true");
 }
+
+#[test]
+fn while_test_1() {
+    // Test for the results of interpreting the following expression:
+    // let a = 9;
+    // while(a > 1) a = a - 1;
+    // Then evaluating the following expression:
+    // a
+
+    // interpret let a = 9;
+
+    let mut interpreter = Interpreter::new();
+
+    let a_token = Token::Ident(String::from("a"));
+    let a_expr = Expression::Variable(a_token.clone());
+
+    let nine_expr = Expression::Literal(Token::Number(9.0));
+
+    let variable_declaration_stmt =
+        Statement::VariableDeclaration(a_token.clone(), Some(nine_expr));
+
+    interpreter.interpret(&[variable_declaration_stmt], &mut Cursor::new(vec![]));
+
+    // interpret while(a > 1) a = a - 1;
+
+    let one_expr = Expression::Literal(Token::Number(1.0));
+
+    let a_greater_than_one = Expression::Binary(
+        Box::new(a_expr.clone()),
+        Token::GreaterThan,
+        Box::new(one_expr.clone()),
+    );
+
+    let a_minus_one = Expression::Binary(
+        Box::new(a_expr.clone()),
+        Token::Minus,
+        Box::new(one_expr.clone()),
+    );
+
+    let assignment_expr = Expression::Assignment(a_token.clone(), Box::new(a_minus_one));
+    let assignment_stmt = Statement::Expression(assignment_expr);
+
+    let while_stmt = Statement::While(a_greater_than_one, Box::new(assignment_stmt));
+
+    interpreter.interpret(&[while_stmt], &mut Cursor::new(vec![]));
+
+    // evaluate a
+
+    let expression_ast = Expression::Variable(a_token);
+
+    let interpreter_result = interpreter.evaluate(&expression_ast);
+
+    // check the results
+
+    assert_eq!(interpreter_result.is_ok(), true);
+    assert_eq!(format!("{}", interpreter_result.unwrap()), "1");
+}
