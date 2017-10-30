@@ -36,6 +36,7 @@ pub enum Token {
     RightBrace,
     // Keywords
     Else,
+    EOF,
     False,
     Function,
     If,
@@ -43,7 +44,7 @@ pub enum Token {
     Print,
     Return,
     True,
-    EOF,
+    While,
 }
 
 pub fn keyword(s: &str) -> Option<Token> {
@@ -59,6 +60,7 @@ pub fn keyword(s: &str) -> Option<Token> {
         "print" => Some(Token::Print),
         "return" => Some(Token::Return),
         "true" => Some(Token::True),
+        "while" => Some(Token::While),
         &_ => None,
     }
 }

@@ -227,3 +227,19 @@ fn logical_or_test() {
 
     assert_eq!(results.len(), expected.len());
 }
+
+#[test]
+fn while_test() {
+    let input = "while";
+
+    let expected = vec![Token::While];
+
+    let lexer = Lexer::new(input);
+    let results: Vec<Token> = lexer.collect();
+
+    for (i, tok) in results.iter().enumerate() {
+        assert_eq!(*tok, expected[i]);
+    }
+
+    assert_eq!(results.len(), expected.len());
+}
