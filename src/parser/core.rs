@@ -95,6 +95,10 @@ impl<'a> Parser<'a> {
 
     fn statement(&self) -> Result<Statement, &'static str> {
         match self.peek() {
+            Some(&Token::For) => {
+                self.advance();
+                self.for_statement()
+            }
             Some(&Token::If) => {
                 self.advance();
                 self.if_statement()
@@ -113,6 +117,70 @@ impl<'a> Parser<'a> {
             }
             _ => self.expr_statement(),
         }
+    }
+
+    fn for_statement(&self) -> Result<Statement, &'static str> {
+        match self.peek() {
+            Some(&Token::LeftParentheses) => {
+                self.advance();
+            }
+            _ => return Err("There should be a left parentheses after a for! Dick."),
+        }
+
+        let initializer = match self.peek() {
+            Some(&Token::Let) => Some(self.var_declaration()?),
+            Some(&Token::Semicolon) => None,
+            _ => Some(self.expr_statement()?),
+        };
+
+        let condition = match self.peek() {
+            Some(&Token::Semicolon) => {
+                self.advance();
+                None
+            }
+            _ => Some(self.expression()?),
+        };
+
+        match self.peek() {
+            Some(&Token::Semicolon) => {
+                self.advance();
+            }
+            _ => {
+                return Err(
+                    "Fucking for statements need fucking semicolons after fucking \
+                     conditions! Fuck!",
+                )
+            }
+        }
+
+        let increment = match self.peek() {
+            Some(&Token::RightParentheses) => None,
+            _ => Some(self.expression()?),
+        };
+
+        match self.peek() {
+            Some(&Token::RightParentheses) => {
+                self.advance();
+            }
+            _ => return Err("Fucking for statements need a left parenthesis after shit! Fuck!"),
+        }
+
+        let mut body = self.statement()?;
+
+        if let Some(increment_inner) = increment {
+            body = Statement::Block(vec![body, Statement::Expression(increment_inner)]);
+        }
+
+        body = match condition {
+            Some(condition_inner) => Statement::While(condition_inner, Box::new(body)),
+            None => Statement::While(Expression::Literal(Token::True), Box::new(body)),
+        };
+
+        if let Some(initializer_inner) = initializer {
+            body = Statement::Block(vec![initializer_inner, body]);
+        }
+
+        Ok(body)
     }
 
     fn if_statement(&self) -> Result<Statement, &'static str> {
