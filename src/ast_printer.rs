@@ -20,6 +20,13 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
                 self.visit_expression(expr1),
                 self.visit_expression(expr2)
             ),
+            Expression::Call(ref callee, _, ref args) => format!(
+                "(Call {} {})",
+                self.visit_expression(callee),
+                args.iter()
+                    .map(|e| self.visit_expression(e))
+                    .collect::<String>()
+            ),
             Expression::Grouping(ref expr) => format!("(Grouping {})", self.visit_expression(expr)),
             Expression::Literal(ref token) => format!("(Literal {:?})", token),
             Expression::Logical(ref expr1, ref token, ref expr2) => format!(

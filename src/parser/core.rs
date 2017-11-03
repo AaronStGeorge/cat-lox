@@ -417,8 +417,36 @@ impl<'a> Parser<'a> {
                 let right = self.unary()?;
                 return Ok(Expression::Unary(t.clone(), Box::new(right)));
             }
-            _ => self.primary(),
+            _ => self.call(),
         }
+    }
+
+    fn call(&self) -> Result<Expression, &'static str> {
+        let mut expr = self.primary()?;
+
+        while self.peek() == Some(&Token::LeftParentheses) {
+            self.advance();
+            let mut args: Vec<Expression> = Vec::new();
+            if self.peek() != Some(&Token::RightParentheses) {
+                loop {
+                    if args.len() >= 8 {
+                        return Err("More than 8 arguments are not allowed!");
+                    }
+                    args.push(self.expression()?);
+                    if self.peek() != Some(&Token::Comma) {
+                        break;
+                    }
+                }
+            }
+            match self.advance() {
+                Some(t) if t == &Token::RightParentheses => {
+                    expr = Expression::Call(Box::new(expr), t.clone(), args)
+                }
+                _ => return Err("If you're trying to fucking call that try harder."),
+            }
+        }
+
+        Ok(expr)
     }
 
     fn primary(&self) -> Result<Expression, &'static str> {

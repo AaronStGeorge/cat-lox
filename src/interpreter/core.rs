@@ -86,6 +86,7 @@ impl MutVisitor for Interpreter {
                     _ => Err(String::from("NO! NO! NO!")),
                 }
             }
+            &Expression::Call(ref e, ref t, ref args) => unimplemented!(),
             &Expression::Grouping(ref e) => self.visit_expression(e),
             &Expression::Literal(ref t) => match t.clone() {
                 Token::Number(i) => Ok(ExpressionReturn::Number(i)),

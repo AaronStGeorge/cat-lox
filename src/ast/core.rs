@@ -4,6 +4,7 @@ use lexer::Token;
 pub enum Expression {
     Assignment(Token, Box<Expression>),
     Binary(Box<Expression>, Token, Box<Expression>),
+    Call(Box<Expression>, Token, Vec<Expression>),
     Grouping(Box<Expression>),
     Literal(Token),
     Logical(Box<Expression>, Token, Box<Expression>),
