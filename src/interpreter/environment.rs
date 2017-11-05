@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use super::core::ExpressionReturn;
+use super::core::CatBoxTypes;
 use lexer::Token;
 
 pub struct Environment {
@@ -29,7 +29,7 @@ impl Environment {
         Ok(())
     }
 
-    pub fn assign(&mut self, name: &Token, value: ExpressionReturn) -> Result<(), String> {
+    pub fn assign(&mut self, name: &Token, value: CatBoxTypes) -> Result<(), String> {
         match name {
             &Token::Ident(ref s) => {
                 for e in self.cactus_stack.iter_mut().rev() {
@@ -46,7 +46,7 @@ impl Environment {
         }
     }
 
-    pub fn define(&mut self, name: &Token, value: Option<ExpressionReturn>) -> () {
+    pub fn define(&mut self, name: &Token, value: Option<CatBoxTypes>) -> () {
         match name {
             &Token::Ident(ref name) => {
                 let len = self.cactus_stack.len();
@@ -56,7 +56,7 @@ impl Environment {
         }
     }
 
-    pub fn get(&mut self, name: &Token) -> Result<Option<ExpressionReturn>, String> {
+    pub fn get(&mut self, name: &Token) -> Result<Option<CatBoxTypes>, String> {
         match name {
             &Token::Ident(ref name) => {
                 for e in self.cactus_stack.iter_mut().rev() {
@@ -72,7 +72,7 @@ impl Environment {
 }
 
 struct EnvironmentNode {
-    values: HashMap<String, Option<ExpressionReturn>>,
+    values: HashMap<String, Option<CatBoxTypes>>,
 }
 
 impl EnvironmentNode {
@@ -82,7 +82,7 @@ impl EnvironmentNode {
         }
     }
 
-    fn assign(&mut self, name: &str, value: &ExpressionReturn) -> Option<()> {
+    fn assign(&mut self, name: &str, value: &CatBoxTypes) -> Option<()> {
         if self.values.contains_key(name) {
             self.values.insert(String::from(name), Some(value.clone()));
             Some(())
@@ -91,11 +91,11 @@ impl EnvironmentNode {
         }
     }
 
-    fn define(&mut self, name: &str, value: Option<ExpressionReturn>) -> () {
+    fn define(&mut self, name: &str, value: Option<CatBoxTypes>) -> () {
         self.values.insert(String::from(name), value);
     }
 
-    fn get(&self, name: &str) -> Option<Option<ExpressionReturn>> {
+    fn get(&self, name: &str) -> Option<Option<CatBoxTypes>> {
         match self.values.get(name) {
             Some(e) => Some(e.clone()),
             None => None,
