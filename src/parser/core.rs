@@ -439,7 +439,7 @@ impl<'a> Parser<'a> {
                 }
             }
             match self.advance() {
-                Some(t) if t == &Token::RightParentheses => {
+                Some(t @ &Token::RightParentheses) => {
                     expr = Expression::Call(Box::new(expr), t.clone(), args)
                 }
                 _ => return Err("If you're trying to fucking call that try harder."),
@@ -455,9 +455,7 @@ impl<'a> Parser<'a> {
                 Token::LeftParentheses => {
                     let expr = self.expression()?;
                     match self.advance() {
-                        Some(t) if *t == Token::RightParentheses => {
-                            Ok(Expression::Grouping(Box::new(expr)))
-                        }
+                        Some(&Token::RightParentheses) => Ok(Expression::Grouping(Box::new(expr))),
                         _ => Err("There should be a fucking right parentheses here!"),
                     }
                 }
