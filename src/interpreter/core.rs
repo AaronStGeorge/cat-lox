@@ -1,4 +1,7 @@
-use std;
+use std::fmt::{Display, Formatter};
+use std::fmt;
+use std::io::Write;
+use std::rc::Rc;
 
 use ast::*;
 use lexer::*;
@@ -17,11 +20,11 @@ impl Interpreter {
 
     // TODO: this is here because in the future it might make sense to have the
     // repl take expressions again, if that is never implemented this should be removed.
-    pub fn evaluate(&mut self, e: &Expression) -> Result<CatBoxTypes, String> {
+    pub fn evaluate(&mut self, e: &Expression) -> Result<CatBoxType, String> {
         self.visit_expression(e)
     }
 
-    pub fn interpret<W: std::io::Write>(&mut self, program: &[Statement], w: &mut W) {
+    pub fn interpret<W: Write>(&mut self, program: &[Statement], w: &mut W) {
         for s in program {
             match self.visit_statement(s, w) {
                 Ok(()) => (),
@@ -34,7 +37,7 @@ impl Interpreter {
 }
 
 impl MutVisitor for Interpreter {
-    type E = Result<CatBoxTypes, String>;
+    type E = Result<CatBoxType, String>;
     type S = Result<(), String>;
 
     fn visit_expression(&mut self, e: &Expression) -> Self::E {
@@ -49,55 +52,71 @@ impl MutVisitor for Interpreter {
                 let left = self.visit_expression(l_expr)?;
                 match (left, token.clone(), right) {
                     (
-                        CatBoxTypes::ReturnString(mut ls),
+                        CatBoxType::ReturnString(mut ls),
                         Token::Plus,
-                        CatBoxTypes::ReturnString(rs),
+                        CatBoxType::ReturnString(rs),
                     ) => {
                         ls.push_str(&rs);
-                        Ok(CatBoxTypes::ReturnString(ls))
+                        Ok(CatBoxType::ReturnString(ls))
                     }
-                    (CatBoxTypes::Number(ln), t, CatBoxTypes::Number(rn)) => match t {
-                        Token::Plus => Ok(CatBoxTypes::Number(ln + rn)),
-                        Token::Minus => Ok(CatBoxTypes::Number(ln - rn)),
-                        Token::Asterisk => Ok(CatBoxTypes::Number(ln * rn)),
+                    (CatBoxType::Number(ln), t, CatBoxType::Number(rn)) => match t {
+                        Token::Plus => Ok(CatBoxType::Number(ln + rn)),
+                        Token::Minus => Ok(CatBoxType::Number(ln - rn)),
+                        Token::Asterisk => Ok(CatBoxType::Number(ln * rn)),
                         Token::Slash => if rn == 0.0 {
                             Err(String::from("No cabrón, I will not divide by zero!"))
                         } else {
-                            Ok(CatBoxTypes::Number(ln / rn))
+                            Ok(CatBoxType::Number(ln / rn))
                         },
-                        Token::GreaterThan => Ok(CatBoxTypes::Boolean(ln > rn)),
-                        Token::GreaterEqual => Ok(CatBoxTypes::Boolean(ln >= rn)),
-                        Token::LessThan => Ok(CatBoxTypes::Boolean(ln < rn)),
-                        Token::LessEqual => Ok(CatBoxTypes::Boolean(ln <= rn)),
-                        Token::Equal => Ok(CatBoxTypes::Boolean(ln == rn)),
-                        Token::NotEqual => Ok(CatBoxTypes::Boolean(ln != rn)),
+                        Token::GreaterThan => Ok(CatBoxType::Boolean(ln > rn)),
+                        Token::GreaterEqual => Ok(CatBoxType::Boolean(ln >= rn)),
+                        Token::LessThan => Ok(CatBoxType::Boolean(ln < rn)),
+                        Token::LessEqual => Ok(CatBoxType::Boolean(ln <= rn)),
+                        Token::Equal => Ok(CatBoxType::Boolean(ln == rn)),
+                        Token::NotEqual => Ok(CatBoxType::Boolean(ln != rn)),
                         _ => Err(String::from("NO! NO you can't do that! Fuuuuuuck!")),
                     },
-                    (CatBoxTypes::Nil, t, CatBoxTypes::Nil) => match t {
-                        Token::Equal => Ok(CatBoxTypes::Boolean(true)),
-                        Token::NotEqual => Ok(CatBoxTypes::Boolean(false)),
+                    (CatBoxType::Nil, t, CatBoxType::Nil) => match t {
+                        Token::Equal => Ok(CatBoxType::Boolean(true)),
+                        Token::NotEqual => Ok(CatBoxType::Boolean(false)),
                         _ => Err(String::from("Fuck no you asshole I'm not doing that shit!")),
                     },
-                    (CatBoxTypes::Boolean(lb), t, CatBoxTypes::Boolean(rb)) => match t {
-                        Token::Equal => Ok(CatBoxTypes::Boolean(lb == rb)),
-                        Token::NotEqual => Ok(CatBoxTypes::Boolean(lb != rb)),
+                    (CatBoxType::Boolean(lb), t, CatBoxType::Boolean(rb)) => match t {
+                        Token::Equal => Ok(CatBoxType::Boolean(lb == rb)),
+                        Token::NotEqual => Ok(CatBoxType::Boolean(lb != rb)),
                         _ => Err(String::from("¡Chinga tu madre!")),
                     },
                     _ => Err(String::from("NO! NO! NO!")),
                 }
             }
-            &Expression::Call(ref callee_expr, ref t, ref args) => {
-                let callee = self.evaluate(callee_expr);
+            &Expression::Call(ref callee_expr, ref arg_exprs) => {
+                let callee = match self.evaluate(callee_expr)? {
+                    CatBoxType::Callable(inner) => inner,
+                    _ => return Err(String::from("You can't call this shit!")),
+                };
 
-                unimplemented!()
+                if arg_exprs.len() != callee.arity() {
+                    return Err(String::from(format!(
+                        "This wants {} arguments and you passed it {}, try again dipshit",
+                        callee.arity(),
+                        arg_exprs.len()
+                    )));
+                }
+
+                let mut arguments: Vec<CatBoxType> = Vec::new();
+                for e in arg_exprs {
+                    arguments.push(self.evaluate(e)?);
+                }
+
+                Ok(callee.call(self, &arguments))
             }
             &Expression::Grouping(ref expr) => self.visit_expression(expr),
             &Expression::Literal(ref t) => match t.clone() {
-                Token::Number(i) => Ok(CatBoxTypes::Number(i)),
-                Token::True => Ok(CatBoxTypes::Boolean(true)),
-                Token::False => Ok(CatBoxTypes::Boolean(false)),
-                Token::Nil => Ok(CatBoxTypes::Nil),
-                Token::LoxString(s) => Ok(CatBoxTypes::ReturnString(s)),
+                Token::Number(i) => Ok(CatBoxType::Number(i)),
+                Token::True => Ok(CatBoxType::Boolean(true)),
+                Token::False => Ok(CatBoxType::Boolean(false)),
+                Token::Nil => Ok(CatBoxType::Nil),
+                Token::LoxString(s) => Ok(CatBoxType::ReturnString(s)),
                 _ => Err(String::from("🐑💨")),
             },
             &Expression::Logical(ref l_expr, ref token, ref r_expr) => {
@@ -118,21 +137,22 @@ impl MutVisitor for Interpreter {
             &Expression::Unary(ref t, ref e) => {
                 let right = self.visit_expression(e)?;
                 match (right, t.clone()) {
-                    (CatBoxTypes::Number(n), Token::Minus) => Ok(CatBoxTypes::Number(-n)),
-                    (CatBoxTypes::Nil, Token::Bang) |
-                    (CatBoxTypes::Boolean(false), Token::Bang) => Ok(CatBoxTypes::Boolean(true)),
-                    (_, Token::Bang) => Ok(CatBoxTypes::Boolean(false)),
+                    (CatBoxType::Number(n), Token::Minus) => Ok(CatBoxType::Number(-n)),
+                    (CatBoxType::Nil, Token::Bang) | (CatBoxType::Boolean(false), Token::Bang) => {
+                        Ok(CatBoxType::Boolean(true))
+                    }
+                    (_, Token::Bang) => Ok(CatBoxType::Boolean(false)),
                     _ => Err(String::from("🖕🖕🖕🖕")),
                 }
             }
             &Expression::Variable(ref token) => match self.environment.get(token)? {
                 Some(e) => Ok(e),
-                None => Ok(CatBoxTypes::Nil),
+                None => Ok(CatBoxType::Nil),
             },
         }
     }
 
-    fn visit_statement<W: std::io::Write>(&mut self, s: &Statement, w: &mut W) -> Self::S {
+    fn visit_statement<W: Write>(&mut self, s: &Statement, w: &mut W) -> Self::S {
         match s {
             &Statement::Block(ref statements) => {
                 self.environment.open();
@@ -182,33 +202,35 @@ impl MutVisitor for Interpreter {
     }
 }
 
-// This seems like the types the language support. This should probably just be Types.
-#[derive(Debug, Clone)]
-pub enum CatBoxTypes {
+#[derive(Clone)]
+pub enum CatBoxType {
     Number(f64),
     ReturnString(String),
     Boolean(bool),
+    Callable(Rc<Box<Callable>>),
     Nil,
 }
 
-impl std::fmt::Display for CatBoxTypes {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl Display for CatBoxType {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            &CatBoxTypes::Number(n) => write!(f, "{}", n),
-            &CatBoxTypes::Boolean(b) => write!(f, "{}", b),
-            &CatBoxTypes::ReturnString(ref s) => write!(f, "\"{}\"", s.to_string()),
-            &CatBoxTypes::Nil => write!(f, "nil"),
+            &CatBoxType::Number(n) => write!(f, "{}", n),
+            &CatBoxType::Boolean(b) => write!(f, "{}", b),
+            &CatBoxType::ReturnString(ref s) => write!(f, "\"{}\"", s.to_string()),
+            &CatBoxType::Nil => write!(f, "nil"),
+            &CatBoxType::Callable(ref c) => write!(f, "{}", c),
         }
     }
 }
 
-trait Calllable {
-    fn cal(&self, &mut Interpreter, &[CatBoxTypes]);
+pub trait Callable: Display {
+    fn arity(&self) -> usize;
+    fn call(&self, &mut Interpreter, &[CatBoxType]) -> CatBoxType;
 }
 
-fn is_truthy(expression_return: &CatBoxTypes) -> bool {
+fn is_truthy(expression_return: &CatBoxType) -> bool {
     match expression_return {
-        &CatBoxTypes::Nil | &CatBoxTypes::Boolean(false) => false,
+        &CatBoxType::Nil | &CatBoxType::Boolean(false) => false,
         _ => true,
     }
 }

@@ -439,9 +439,7 @@ impl<'a> Parser<'a> {
                 }
             }
             match self.advance() {
-                Some(t @ &Token::RightParentheses) => {
-                    expr = Expression::Call(Box::new(expr), t.clone(), args)
-                }
+                Some(&Token::RightParentheses) => expr = Expression::Call(Box::new(expr), args),
                 _ => return Err("If you're trying to fucking call that try harder."),
             }
         }

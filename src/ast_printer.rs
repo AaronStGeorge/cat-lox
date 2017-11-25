@@ -20,7 +20,7 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
                 self.visit_expression(expr1),
                 self.visit_expression(expr2)
             ),
-            Expression::Call(ref callee, _, ref args) => format!(
+            Expression::Call(ref callee, ref args) => format!(
                 "(Call {} {})",
                 self.visit_expression(callee),
                 args.iter()
