@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 use super::core::CatBoxType;
 use lexer::Token;
+use super::clock::Clock;
+use std::rc::Rc;
 
+#[derive(Debug)]
 pub struct Environment {
     cactus_stack: Vec<EnvironmentNode>,
 }
@@ -9,7 +12,7 @@ pub struct Environment {
 impl Environment {
     pub fn new() -> Environment {
         Environment {
-            cactus_stack: vec![EnvironmentNode::new()],
+            cactus_stack: vec![EnvironmentNode::global()],
         }
     }
 
@@ -59,7 +62,7 @@ impl Environment {
     pub fn get(&mut self, name: &Token) -> Result<Option<CatBoxType>, String> {
         match name {
             &Token::Ident(ref name) => {
-                for e in self.cactus_stack.iter_mut().rev() {
+                for e in self.cactus_stack.iter().rev() {
                     if let Some(value) = e.get(name) {
                         return Ok(value);
                     }
@@ -71,6 +74,8 @@ impl Environment {
     }
 }
 
+
+#[derive(Debug)]
 struct EnvironmentNode {
     values: HashMap<String, Option<CatBoxType>>,
 }
@@ -80,6 +85,19 @@ impl EnvironmentNode {
         EnvironmentNode {
             values: HashMap::new(),
         }
+    }
+
+    // The global environment, all native functions should be defined here.
+    fn global() -> EnvironmentNode {
+        let mut global = EnvironmentNode {
+            values: HashMap::new(),
+        };
+
+        let clock = CatBoxType::Callable(Rc::new(Box::new(Clock {})));
+
+        global.define("clock", Some(clock));
+
+        global
     }
 
     fn assign(&mut self, name: &str, value: &CatBoxType) -> Option<()> {

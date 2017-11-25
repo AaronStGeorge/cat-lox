@@ -1,9 +1,14 @@
+let tick = clock();
 let i = 0;
 let j = 1;
 
-while (i < 1000) {
+while (i < 100000) {
     print i;
     let temp = i + j;
     i = j;
     j = temp;
 }
+
+let tock = clock();
+print "fibonacci.cbox completed in (s):";
+print tock - tick;

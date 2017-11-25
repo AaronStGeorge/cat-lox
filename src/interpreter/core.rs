@@ -1,5 +1,4 @@
-use std::fmt::{Display, Formatter};
-use std::fmt;
+use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 use std::io::Write;
 use std::rc::Rc;
 
@@ -18,8 +17,6 @@ impl Interpreter {
         }
     }
 
-    // TODO: this is here because in the future it might make sense to have the
-    // repl take expressions again, if that is never implemented this should be removed.
     pub fn evaluate(&mut self, e: &Expression) -> Result<CatBoxType, String> {
         self.visit_expression(e)
     }
@@ -202,7 +199,7 @@ impl MutVisitor for Interpreter {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum CatBoxType {
     Number(f64),
     ReturnString(String),
@@ -212,7 +209,7 @@ pub enum CatBoxType {
 }
 
 impl Display for CatBoxType {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
             &CatBoxType::Number(n) => write!(f, "{}", n),
             &CatBoxType::Boolean(b) => write!(f, "{}", b),
@@ -223,7 +220,7 @@ impl Display for CatBoxType {
     }
 }
 
-pub trait Callable: Display {
+pub trait Callable: Debug + Display {
     fn arity(&self) -> usize;
     fn call(&self, &mut Interpreter, &[CatBoxType]) -> CatBoxType;
 }
