@@ -54,6 +54,18 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
             Statement::Expression(ref expr) => {
                 format!("(Expression Statement {})", self.visit_expression(expr))
             }
+            Statement::FunctionDeclaration(ref name, ref parameters, ref body) => format!(
+                "(FunctionDeclaration Statement \n\tname: {:?} \n\tparameters: [{}] \n\tbody: {} \n)",
+                name,
+                parameters
+                    .iter()
+                    .map(|t| format!("{:?}", t))
+                    .collect::<Vec<_>>()
+                    .connect(", "),
+                body.iter()
+                    .map(|s| self.visit_statement(s))
+                    .collect::<String>()
+            ),
             Statement::If(ref conditional, ref then_stmt, ref else_stmt) => format!(
                 "(If Statement {} {} {})",
                 self.visit_expression(conditional),

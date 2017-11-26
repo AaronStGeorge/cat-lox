@@ -165,6 +165,7 @@ impl MutVisitor for Interpreter {
                 self.visit_expression(e)?;
                 Ok(())
             }
+            &Statement::FunctionDeclaration(ref name, ref parameters, ref body) => unimplemented!(),
             &Statement::If(ref conditional, ref then_stmt, ref else_option) => {
                 if is_truthy(&self.visit_expression(conditional)?) {
                     self.visit_statement(then_stmt, w)?;

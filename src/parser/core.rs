@@ -86,10 +86,97 @@ impl<'a> Parser<'a> {
 
     // Statements ==================================================================================
 
+    // Helpers ====
+
+    fn block(&self) -> Result<Vec<Statement>, &'static str> {
+        let mut statements: Vec<Statement> = Vec::new();
+        while match self.peek() {
+            Some(&Token::RightBrace) => false,
+            _ => true,
+        } {
+            statements.push(self.declaration()?);
+        }
+
+        match self.advance() {
+            Some(&Token::RightBrace) => Ok(statements),
+            _ => Err("You didn't close your fucking block!"),
+        }
+    }
+
+    // Parsing methods ====
+
     fn declaration(&self) -> Result<Statement, &'static str> {
         match self.peek() {
-            Some(&Token::Let) => self.var_declaration(),
+            Some(&Token::Let) => {
+                self.advance();
+                self.var_declaration()
+            }
+            Some(&Token::Function) => {
+                self.advance();
+                self.function_declaration()
+            }
             _ => self.statement(),
+        }
+    }
+
+    fn var_declaration(&self) -> Result<Statement, &'static str> {
+        match (self.advance(), self.peek()) {
+            (Some(token), Some(&Token::Assign)) => {
+                self.advance();
+                match (self.expression()?, self.peek()) {
+                    (e, Some(&Token::Semicolon)) => {
+                        self.advance();
+                        Ok(Statement::VariableDeclaration(token.clone(), Some(e)))
+                    }
+                    _ => Err(
+                        "OMG!!! It goes let whatever = some shit; How. Fucking. Hard. Is. That.",
+                    ),
+                }
+            }
+            (Some(token), Some(&Token::Semicolon)) => {
+                self.advance();
+                Ok(Statement::VariableDeclaration(token.clone(), None))
+            }
+            _ => Err("Are you trying to write let a; and failing? Jesus."),
+        }
+    }
+
+    fn function_declaration(&self) -> Result<Statement, &'static str> {
+        match (self.advance(), self.advance()) {
+            (Some(name @ &Token::Ident(_)), Some(&Token::LeftParentheses)) => {
+                let mut parameters: Vec<Token> = Vec::new();
+                if self.peek() != Some(&Token::RightParentheses) {
+                    loop {
+                        if parameters.len() >= 8 {
+                            return Err("Cannot have more than 8 parameters!");
+                        }
+                        if let Some(t @ &Token::Ident(_)) = self.advance() {
+                            parameters.push(t.clone());
+                        } else {
+                            return Err("That can't be used as a parameter");
+                        }
+                        match self.peek() {
+                            Some(&Token::Comma) => {
+                                self.advance();
+                            }
+                            _ => break,
+                        }
+                    }
+                }
+                if self.advance() != Some(&Token::RightParentheses) {
+                    return Err("You're going to need to close this function");
+                }
+                if self.advance() != Some(&Token::LeftBrace) {
+                    return Err("You're going to need a function body");
+                }
+                let statements = self.block()?;
+                Ok(Statement::FunctionDeclaration(
+                    name.clone(),
+                    parameters,
+                    statements,
+                ))
+            }
+            _ => Err("Yeah you said this was a function but it doesn't look like one."),
         }
     }
 
@@ -128,7 +215,10 @@ impl<'a> Parser<'a> {
         }
 
         let initializer = match self.peek() {
-            Some(&Token::Let) => Some(self.var_declaration()?),
+            Some(&Token::Let) => {
+                self.advance();
+                Some(self.var_declaration()?)
+            }
             Some(&Token::Semicolon) => None,
             _ => Some(self.expr_statement()?),
         };
@@ -213,19 +303,7 @@ impl<'a> Parser<'a> {
     }
 
     fn block_statement(&self) -> Result<Statement, &'static str> {
-        let mut statements: Vec<Statement> = Vec::new();
-
-        while match self.peek() {
-            Some(&Token::RightBrace) => false,
-            _ => true,
-        } {
-            statements.push(self.declaration()?);
-        }
-
-        match self.advance() {
-            Some(&Token::RightBrace) => Ok(Statement::Block(statements)),
-            _ => Err("You didn't close your fucking block!"),
-        }
+        Ok(Statement::Block(self.block()?))
     }
 
     fn print_statement(&self) -> Result<Statement, &'static str> {
@@ -274,27 +352,6 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn var_declaration(&self) -> Result<Statement, &'static str> {
-        match (self.advance(), self.advance(), self.peek()) {
-            (Some(&Token::Let), Some(token), Some(&Token::Assign)) => {
-                self.advance();
-                match (self.expression()?, self.peek()) {
-                    (e, Some(&Token::Semicolon)) => {
-                        self.advance();
-                        Ok(Statement::VariableDeclaration(token.clone(), Some(e)))
-                    }
-                    _ => Err(
-                        "OMG!!! It goes let whatever = some shit; How. Fucking. Hard. Is. That.",
-                    ),
-                }
-            }
-            (Some(&Token::Let), Some(token), Some(&Token::Semicolon)) => {
-                self.advance();
-                Ok(Statement::VariableDeclaration(token.clone(), None))
-            }
-            _ => Err("Are you trying to write let a; and failing? Jesus."),
-        }
-    }
 
     // Expressions =================================================================================
 
@@ -433,8 +490,11 @@ impl<'a> Parser<'a> {
                         return Err("More than 8 arguments are not allowed!");
                     }
                     args.push(self.expression()?);
-                    if self.peek() != Some(&Token::Comma) {
-                        break;
+                    match self.peek() {
+                        Some(&Token::Comma) => {
+                            self.advance();
+                        }
+                        _ => break,
                     }
                 }
             }

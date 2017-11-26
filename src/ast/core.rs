@@ -16,6 +16,7 @@ pub enum Expression {
 pub enum Statement {
     Block(Vec<Statement>),
     Expression(Expression),
+    FunctionDeclaration(Token, Vec<Token>, Vec<Statement>),
     If(Expression, Box<Statement>, Option<Box<Statement>>),
     Print(Expression),
     VariableDeclaration(Token, Option<Expression>),
