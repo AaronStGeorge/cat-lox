@@ -1,24 +1,32 @@
-use std::collections::HashMap;
 use super::core::CatBoxType;
-use lexer::Token;
 use super::clock::Clock;
+use lexer::Token;
+use std::collections::HashMap;
 use std::rc::Rc;
+use std::cell::RefCell;
 
 #[derive(Debug)]
 pub struct Environment {
-    cactus_stack: Vec<EnvironmentNode>,
+    cactus_stack: Vec<Rc<RefCell<EnvironmentNode>>>,
+
 }
 
 impl Environment {
-    pub fn new() -> Environment {
+    pub fn global() -> Environment {
         Environment {
-            cactus_stack: vec![EnvironmentNode::global()],
+            cactus_stack: vec![Rc::new(RefCell::new(EnvironmentNode::global()))],
+        }
+    }
+
+    pub fn new_from(environment : &Environment) -> Environment {
+        Environment {
+            cactus_stack: environment.cactus_stack.clone(),
         }
     }
 
     // TODO: name this better
     pub fn open(&mut self) {
-        self.cactus_stack.push(EnvironmentNode::new());
+        self.cactus_stack.push(Rc::new(RefCell::new(EnvironmentNode::new())));
     }
 
     // TODO: name this better
@@ -36,7 +44,7 @@ impl Environment {
         match name {
             &Token::Ident(ref s) => {
                 for e in self.cactus_stack.iter_mut().rev() {
-                    if let Some(_) = e.assign(s, &value) {
+                    if let Some(_) = e.borrow_mut().assign(s, &value) {
                         return Ok(());
                     }
                 }
@@ -53,17 +61,17 @@ impl Environment {
         match name {
             &Token::Ident(ref name) => {
                 let len = self.cactus_stack.len();
-                self.cactus_stack[len - 1].define(name, value)
+                self.cactus_stack[len - 1].borrow_mut().define(name, value)
             }
             _ => unreachable!(),
         }
     }
 
-    pub fn get(&mut self, name: &Token) -> Result<Option<CatBoxType>, String> {
+    pub fn get(&self, name: &Token) -> Result<Option<CatBoxType>, String> {
         match name {
             &Token::Ident(ref name) => {
                 for e in self.cactus_stack.iter().rev() {
-                    if let Some(value) = e.get(name) {
+                    if let Some(value) = e.borrow().get(name) {
                         return Ok(value);
                     }
                 }

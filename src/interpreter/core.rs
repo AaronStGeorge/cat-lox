@@ -1,32 +1,32 @@
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 use std::io::Write;
 use std::rc::Rc;
+use std::mem;
 
 use ast::*;
 use lexer::*;
 use super::environment::Environment;
 
 pub struct Interpreter {
-    environment: Environment,
+    global_environment: Environment,
+    current_environment: Environment,
 }
 
 impl Interpreter {
     pub fn new() -> Interpreter {
+        let global_env = Environment::global();
         Interpreter {
-            environment: Environment::new(),
+            current_environment: Environment::new_from(&global_env),
+            global_environment: global_env,
         }
     }
 
-    pub fn evaluate(&mut self, e: &Expression) -> Result<CatBoxType, String> {
-        self.visit_expression(e)
-    }
-
-    pub fn interpret<W: Write>(&mut self, program: &[Statement], w: &mut W) {
+    pub fn interpret(&mut self, program: &[Statement]) {
         for s in program {
-            match self.visit_statement(s, w) {
+            match self.visit_statement(s) {
                 Ok(()) => (),
                 Err(err) => {
-                    writeln!(w, "Run Time Error: {}", err).unwrap();
+                    println!("Run Time Error: {}", err);
                 }
             }
         }
@@ -41,7 +41,7 @@ impl MutVisitor for Interpreter {
         match e {
             &Expression::Assignment(ref token, ref expr) => {
                 let value = self.visit_expression(expr)?;
-                self.environment.assign(&token, value.clone())?;
+                self.current_environment.assign(&token, value.clone())?;
                 Ok(value)
             }
             &Expression::Binary(ref l_expr, ref token, ref r_expr) => {
@@ -87,7 +87,7 @@ impl MutVisitor for Interpreter {
                 }
             }
             &Expression::Call(ref callee_expr, ref arg_exprs) => {
-                let callee = match self.evaluate(callee_expr)? {
+                let callee = match self.visit_expression(callee_expr)? {
                     CatBoxType::Callable(inner) => inner,
                     _ => return Err(String::from("You can't call this shit!")),
                 };
@@ -102,10 +102,10 @@ impl MutVisitor for Interpreter {
 
                 let mut arguments: Vec<CatBoxType> = Vec::new();
                 for e in arg_exprs {
-                    arguments.push(self.evaluate(e)?);
+                    arguments.push(self.visit_expression(e)?);
                 }
 
-                Ok(callee.call(self, &arguments))
+                Ok(callee.call(self, arguments))
             }
             &Expression::Grouping(ref expr) => self.visit_expression(expr),
             &Expression::Literal(ref t) => match t.clone() {
@@ -142,36 +142,40 @@ impl MutVisitor for Interpreter {
                     _ => Err(String::from("🖕🖕🖕🖕")),
                 }
             }
-            &Expression::Variable(ref token) => match self.environment.get(token)? {
+            &Expression::Variable(ref token) => match self.current_environment.get(token)? {
                 Some(e) => Ok(e),
                 None => Ok(CatBoxType::Nil),
             },
         }
     }
 
-    fn visit_statement<W: Write>(&mut self, s: &Statement, w: &mut W) -> Self::S {
+    fn visit_statement(&mut self, s: &Statement) -> Self::S {
         match s {
             &Statement::Block(ref statements) => {
-                self.environment.open();
+                self.current_environment.open();
 
                 for statement in statements {
-                    self.visit_statement(statement, w)?;
+                    self.visit_statement(statement)?;
                 }
 
-                self.environment.close()?;
+                self.current_environment.close()?;
                 Ok(())
             }
             &Statement::Expression(ref e) => {
                 self.visit_expression(e)?;
                 Ok(())
             }
-            &Statement::FunctionDeclaration(ref name, ref parameters, ref body) => unimplemented!(),
+            &Statement::FunctionDeclaration(ref name, ref parameters, ref body) => {
+                let cbox_fn = Function{parameters : parameters.clone(), body: body.clone()};
+                self.current_environment.define(&name, Some(CatBoxType::Callable(Rc::new(Box::new(cbox_fn)))));
+                Ok(())
+            },
             &Statement::If(ref conditional, ref then_stmt, ref else_option) => {
                 if is_truthy(&self.visit_expression(conditional)?) {
-                    self.visit_statement(then_stmt, w)?;
+                    self.visit_statement(then_stmt)?;
                 } else {
                     if let &Some(ref else_stmt) = else_option {
-                        self.visit_statement(else_stmt, w)?;
+                        self.visit_statement(else_stmt)?;
                     }
                 }
 
@@ -179,19 +183,19 @@ impl MutVisitor for Interpreter {
             }
             &Statement::Print(ref expr) => {
                 let result = self.visit_expression(expr)?;
-                writeln!(w, "{}", result).unwrap();
+                println!("{}", result);
                 Ok(())
             }
             &Statement::VariableDeclaration(ref token, ref initializer) => match initializer {
                 &Some(ref e) => {
                     let result = self.visit_expression(e)?;
-                    Ok(self.environment.define(&token, Some(result)))
+                    Ok(self.current_environment.define(&token, Some(result)))
                 }
-                &None => Ok(self.environment.define(&token, None)),
+                &None => Ok(self.current_environment.define(&token, None)),
             },
             &Statement::While(ref expr, ref stmt) => {
                 while is_truthy(&self.visit_expression(expr)?) {
-                    self.visit_statement(stmt, w)?
+                    self.visit_statement(stmt)?
                 }
 
                 Ok(())
@@ -223,12 +227,47 @@ impl Display for CatBoxType {
 
 pub trait Callable: Debug + Display {
     fn arity(&self) -> usize;
-    fn call(&self, &mut Interpreter, &[CatBoxType]) -> CatBoxType;
+    fn call(&self, &mut Interpreter, Vec<CatBoxType>) -> CatBoxType;
 }
 
 fn is_truthy(expression_return: &CatBoxType) -> bool {
     match expression_return {
         &CatBoxType::Nil | &CatBoxType::Boolean(false) => false,
         _ => true,
+    }
+}
+
+#[derive(Debug)]
+pub struct Function {
+    parameters: Vec<Token>,
+    body: Vec<Statement>,
+}
+
+impl Callable for Function {
+    fn arity(&self) -> usize {
+        self.parameters.len()
+    }
+
+    fn call(&self, interpreter: &mut Interpreter, mut arguments: Vec<CatBoxType>) -> CatBoxType {
+        let mut environment = Environment::new_from(&interpreter.global_environment);
+        for (i, arg) in arguments.drain(..).enumerate() {
+            println!("{:?}", arg);
+            environment.define(&self.parameters[i], Some(arg));
+        }
+
+        mem::swap(&mut interpreter.current_environment, &mut environment);
+
+        interpreter.interpret(&self.body);
+
+        mem::swap(&mut interpreter.current_environment, &mut environment);
+
+        CatBoxType::Nil
+    }
+}
+
+
+impl Display for Function {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "user defined function")
     }
 }

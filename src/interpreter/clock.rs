@@ -10,7 +10,7 @@ impl Callable for Clock {
         0
     }
 
-    fn call(&self, _: &mut Interpreter, __: &[CatBoxType]) -> CatBoxType {
+    fn call(&self, _: &mut Interpreter, __: Vec<CatBoxType>) -> CatBoxType {
         let time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()

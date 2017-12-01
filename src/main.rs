@@ -35,13 +35,13 @@ fn main() {
             .expect("something went wrong reading the file");
 
         let mut interpreter = Interpreter::new();
-        run(&contents, is_debug, &mut interpreter, &mut io::stdout());
+        run(&contents, is_debug, &mut interpreter);
     } else {
-        repl(io::stdout(), is_debug).unwrap();
+        repl(is_debug).unwrap();
     }
 }
 
-pub fn repl(mut stdout: io::Stdout, is_debug: bool) -> io::Result<()> {
+pub fn repl(is_debug: bool) -> io::Result<()> {
     println!(
         r#"
   ___    __   ____  ____  _____  _  _
@@ -74,7 +74,7 @@ catbox is free software with ABSOLUTELY NO WARRANTY.
 
         match res {
             Ok(res) => {
-                run(&res, is_debug, &mut interpreter, &mut stdout);
+                run(&res, is_debug, &mut interpreter);
 
                 con.history.push(res.into())?;
             }
@@ -95,7 +95,7 @@ catbox is free software with ABSOLUTELY NO WARRANTY.
 }
 
 
-fn run(res: &str, is_debug: bool, interpreter: &mut Interpreter, stdout: &mut io::Stdout) {
+fn run(res: &str, is_debug: bool, interpreter: &mut Interpreter) {
     let tokens: Vec<Token> = Lexer::new(res).collect();
 
     if is_debug {
@@ -118,7 +118,7 @@ fn run(res: &str, is_debug: bool, interpreter: &mut Interpreter, stdout: &mut io
                 println!("Output ----");
             }
 
-            interpreter.interpret(&statements, stdout);
+            interpreter.interpret(&statements);
         }
         Err(err) => println!("Parse Error: {}", err),
     }

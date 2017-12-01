@@ -61,7 +61,7 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
                     .iter()
                     .map(|t| format!("{:?}", t))
                     .collect::<Vec<_>>()
-                    .connect(", "),
+                    .join(", "),
                 body.iter()
                     .map(|s| self.visit_statement(s))
                     .collect::<String>()
