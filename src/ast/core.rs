@@ -19,6 +19,7 @@ pub enum Statement {
     FunctionDeclaration(Token, Vec<Token>, Vec<Statement>),
     If(Expression, Box<Statement>, Option<Box<Statement>>),
     Print(Expression),
+    Return(Option<Expression>),
     VariableDeclaration(Token, Option<Expression>),
     While(Expression, Box<Statement>),
 }

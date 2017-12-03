@@ -198,6 +198,10 @@ impl<'a> Parser<'a> {
                 self.advance();
                 self.print_statement()
             }
+            Some(&Token::Return) => {
+                self.advance();
+                self.return_statement()
+            }
             Some(&Token::While) => {
                 self.advance();
                 self.while_statement()
@@ -315,6 +319,26 @@ impl<'a> Parser<'a> {
                 Ok(Statement::Print(expr))
             }
             _ => Err("There should be a fucking semicolon after this print statement!"),
+        }
+    }
+
+    fn return_statement(&self) -> Result<Statement, &'static str> {
+        match self.peek() { 
+            Some(&Token::Semicolon) => {
+                self.advance();
+                Ok(Statement::Return(None))
+            }
+            _ => {
+                let expr = self.expression()?;
+
+                match self.peek() {
+                    Some(&Token::Semicolon) => {
+                        self.advance();
+                        Ok(Statement::Return(Some(expr)))
+                    }
+                    _ => Err("There should be a fucking semicolon after this expression!"),
+                }
+            }
         }
     }
 

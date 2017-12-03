@@ -1,5 +1,4 @@
 use ast::core::*;
-use std::io::Write;
 
 pub trait MutVisitor {
     type E;

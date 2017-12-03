@@ -1,4 +1,4 @@
-use super::core::CatBoxType;
+use super::core::Types;
 use super::clock::Clock;
 use lexer::Token;
 use std::collections::HashMap;
@@ -24,23 +24,16 @@ impl Environment {
         }
     }
 
-    // TODO: name this better
-    pub fn open(&mut self) {
-        self.cactus_stack.push(Rc::new(RefCell::new(EnvironmentNode::new())));
+    pub fn new_node(environment : &Environment) -> Environment {
+        let mut new_environment = Environment {
+            cactus_stack: environment.cactus_stack.clone(),
+        };
+        new_environment.cactus_stack.push(Rc::new(RefCell::new(EnvironmentNode::new())));
+
+        new_environment
     }
 
-    // TODO: name this better
-    pub fn close(&mut self) -> Result<(), String> {
-        if self.cactus_stack.len() <= 1 {
-            return Err(String::from(
-                "You can't close the fucking global environment!",
-            ));
-        }
-        self.cactus_stack.pop();
-        Ok(())
-    }
-
-    pub fn assign(&mut self, name: &Token, value: CatBoxType) -> Result<(), String> {
+    pub fn assign(&mut self, name: &Token, value: Types) -> Result<(), String> {
         match name {
             &Token::Ident(ref s) => {
                 for e in self.cactus_stack.iter_mut().rev() {
@@ -57,7 +50,7 @@ impl Environment {
         }
     }
 
-    pub fn define(&mut self, name: &Token, value: Option<CatBoxType>) -> () {
+    pub fn define(&mut self, name: &Token, value: Option<Types>) -> () {
         match name {
             &Token::Ident(ref name) => {
                 let len = self.cactus_stack.len();
@@ -67,7 +60,7 @@ impl Environment {
         }
     }
 
-    pub fn get(&self, name: &Token) -> Result<Option<CatBoxType>, String> {
+    pub fn get(&self, name: &Token) -> Result<Option<Types>, String> {
         match name {
             &Token::Ident(ref name) => {
                 for e in self.cactus_stack.iter().rev() {
@@ -75,7 +68,7 @@ impl Environment {
                         return Ok(value);
                     }
                 }
-                Err(String::from("That variable is super fucking undefined"))
+                Err(format!("{} is super fucking undefined", name))
             }
             _ => unreachable!(),
         }
@@ -85,7 +78,7 @@ impl Environment {
 
 #[derive(Debug)]
 struct EnvironmentNode {
-    values: HashMap<String, Option<CatBoxType>>,
+    values: HashMap<String, Option<Types>>,
 }
 
 impl EnvironmentNode {
@@ -101,14 +94,14 @@ impl EnvironmentNode {
             values: HashMap::new(),
         };
 
-        let clock = CatBoxType::Callable(Rc::new(Box::new(Clock {})));
+        let clock = Types::Callable(Rc::new(Box::new(Clock {})));
 
         global.define("clock", Some(clock));
 
         global
     }
 
-    fn assign(&mut self, name: &str, value: &CatBoxType) -> Option<()> {
+    fn assign(&mut self, name: &str, value: &Types) -> Option<()> {
         if self.values.contains_key(name) {
             self.values.insert(String::from(name), Some(value.clone()));
             Some(())
@@ -117,11 +110,11 @@ impl EnvironmentNode {
         }
     }
 
-    fn define(&mut self, name: &str, value: Option<CatBoxType>) -> () {
+    fn define(&mut self, name: &str, value: Option<Types>) -> () {
         self.values.insert(String::from(name), value);
     }
 
-    fn get(&self, name: &str) -> Option<Option<CatBoxType>> {
+    fn get(&self, name: &str) -> Option<Option<Types>> {
         match self.values.get(name) {
             Some(e) => Some(e.clone()),
             None => None,

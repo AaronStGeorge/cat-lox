@@ -78,10 +78,16 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
             Statement::Print(ref expr) => {
                 format!("(Print Statement {})", self.visit_expression(expr))
             }
-            Statement::VariableDeclaration(ref token, ref expr) => format!(
+            Statement::Return(ref expr_option) => format!("(Return Statement {})",
+                match expr_option {
+                    &Some(ref expr) => self.visit_expression(expr),
+                    &None => "nil".to_string(),
+                }
+            ),
+            Statement::VariableDeclaration(ref token, ref expr_option) => format!(
                 "(VariableDeclaration Statement {:?} {})",
                 token,
-                match expr {
+                match expr_option {
                     &Some(ref expr) => self.visit_expression(expr),
                     &None => "nil".to_string(),
                 }
