@@ -7,16 +7,13 @@ use lexer::*;
 use super::environment::Environment;
 
 pub struct Interpreter {
-    global_environment: Environment,
     current_environment: Environment,
 }
 
 impl Interpreter {
     pub fn new() -> Interpreter {
-        let global_env = Environment::global();
         Interpreter {
-            current_environment: Environment::new_from(&global_env),
-            global_environment: global_env,
+            current_environment: Environment::global(),
         }
     }
 
@@ -201,7 +198,7 @@ impl MutVisitor for Interpreter {
                 Ok(())
             }
             &Statement::FunctionDeclaration(ref name, ref parameters, ref body) => {
-                let cbox_fn = Function{parameters : parameters.clone(), body: body.clone()};
+                let cbox_fn = Function{parameters : parameters.clone(), body: body.clone(), closure: Environment::new_from(&self.current_environment)};
                 self.current_environment.define(&name, Some(Types::Callable(Rc::new(Box::new(cbox_fn)))));
                 Ok(())
             },
@@ -293,6 +290,7 @@ fn is_truthy(expression_return: &Types) -> bool {
 pub struct Function {
     parameters: Vec<Token>,
     body: Vec<Statement>,
+    closure: Environment,
 }
 
 impl Callable for Function {
@@ -301,7 +299,7 @@ impl Callable for Function {
     }
 
     fn call(&self, interpreter: &mut Interpreter, mut arguments: Vec<Types>) -> Result<Types, String> {
-        let mut environment = Environment::new_node(&interpreter.global_environment);
+        let mut environment = Environment::new_node(&self.closure);
 
         // Define parameters as passed arguments
         for (i, arg) in arguments.drain(..).enumerate() {
