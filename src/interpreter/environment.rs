@@ -8,7 +8,6 @@ use std::cell::RefCell;
 #[derive(Debug)]
 pub struct Environment {
     cactus_stack: Vec<Rc<RefCell<EnvironmentNode>>>,
-
 }
 
 impl Environment {
@@ -18,17 +17,19 @@ impl Environment {
         }
     }
 
-    pub fn new_from(environment : &Environment) -> Environment {
+    pub fn new_from(environment: &Environment) -> Environment {
         Environment {
             cactus_stack: environment.cactus_stack.clone(),
         }
     }
 
-    pub fn new_node(environment : &Environment) -> Environment {
+    pub fn new_node(environment: &Environment) -> Environment {
         let mut new_environment = Environment {
             cactus_stack: environment.cactus_stack.clone(),
         };
-        new_environment.cactus_stack.push(Rc::new(RefCell::new(EnvironmentNode::new())));
+        new_environment
+            .cactus_stack
+            .push(Rc::new(RefCell::new(EnvironmentNode::new())));
 
         new_environment
     }

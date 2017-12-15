@@ -23,13 +23,19 @@ impl Interpreter {
                 Ok(()) => (),
                 Err(err) => match err {
                     CatBoxReturn::Err(s) => println!("Run Time Error: {}", s),
-                    CatBoxReturn::Return(_) => println!("Return can only be used in function scope dummy")
-                }
+                    CatBoxReturn::Return(_) => {
+                        println!("Return can only be used in function scope dummy")
+                    }
+                },
             }
         }
     }
 
-    fn execute_block(&mut self, block : &[Statement], mut environment: Environment) -> Result<(), CatBoxReturn> {
+    fn execute_block(
+        &mut self,
+        block: &[Statement],
+        mut environment: Environment,
+    ) -> Result<(), CatBoxReturn> {
         // Swap out environment with desired environment
         mem::swap(&mut self.current_environment, &mut environment);
 
@@ -44,9 +50,9 @@ impl Interpreter {
                         // Swap back current environment
                         mem::swap(&mut self.current_environment, &mut environment);
 
-                        return Err(CatBoxReturn::Return(t))
+                        return Err(CatBoxReturn::Return(t));
                     }
-                }
+                },
             }
         }
 
@@ -72,23 +78,12 @@ impl MutVisitor for Interpreter {
                 let right = self.visit_expression(r_expr)?;
                 let left = self.visit_expression(l_expr)?;
                 match (left, token.clone(), right) {
-                    (
-                        Types::ReturnString(mut ls),
-                        Token::Plus,
-                        Types::ReturnString(rs),
-                    ) => {
+                    (Types::ReturnString(mut ls), Token::Plus, Types::ReturnString(rs)) => {
                         ls.push_str(&rs);
                         Ok(Types::ReturnString(ls))
                     }
-                    (
-                        Types::Number(n),
-                        Token::Plus,
-                        Types::ReturnString(mut s),
-                    ) | (
-                        Types::ReturnString(mut s),
-                        Token::Plus,
-                        Types::Number(n),
-                    )=> {
+                    (Types::Number(n), Token::Plus, Types::ReturnString(mut s))
+                    | (Types::ReturnString(mut s), Token::Plus, Types::Number(n)) => {
                         s.push_str(&format!("{}", n));
                         Ok(Types::ReturnString(s))
                     }
@@ -198,10 +193,15 @@ impl MutVisitor for Interpreter {
                 Ok(())
             }
             &Statement::FunctionDeclaration(ref name, ref parameters, ref body) => {
-                let cbox_fn = Function{parameters : parameters.clone(), body: body.clone(), closure: Environment::new_from(&self.current_environment)};
-                self.current_environment.define(&name, Some(Types::Callable(Rc::new(Box::new(cbox_fn)))));
+                let cbox_fn = Function {
+                    parameters: parameters.clone(),
+                    body: body.clone(),
+                    closure: Environment::new_from(&self.current_environment),
+                };
+                self.current_environment
+                    .define(&name, Some(Types::Callable(Rc::new(Box::new(cbox_fn)))));
                 Ok(())
-            },
+            }
             &Statement::If(ref conditional, ref then_stmt, ref else_option) => {
                 if is_truthy(&self.visit_expression(conditional)?) {
                     self.visit_statement(then_stmt)?;
@@ -218,12 +218,10 @@ impl MutVisitor for Interpreter {
                 println!("{}", result);
                 Ok(())
             }
-            &Statement::Return(ref expr_option) => {
-                Err(CatBoxReturn::Return(match expr_option {
-                    &Some(ref expr) => self.visit_expression(expr)?,
-                    &None => Types::Nil,
-                }))
-            }
+            &Statement::Return(ref expr_option) => Err(CatBoxReturn::Return(match expr_option {
+                &Some(ref expr) => self.visit_expression(expr)?,
+                &None => Types::Nil,
+            })),
             &Statement::VariableDeclaration(ref token, ref initializer) => match initializer {
                 &Some(ref e) => {
                     let result = self.visit_expression(e)?;
@@ -257,7 +255,7 @@ pub enum CatBoxReturn {
 }
 
 impl From<String> for CatBoxReturn {
-    fn from(s : String) -> Self {
+    fn from(s: String) -> Self {
         CatBoxReturn::Err(s)
     }
 }
@@ -298,7 +296,11 @@ impl Callable for Function {
         self.parameters.len()
     }
 
-    fn call(&self, interpreter: &mut Interpreter, mut arguments: Vec<Types>) -> Result<Types, String> {
+    fn call(
+        &self,
+        interpreter: &mut Interpreter,
+        mut arguments: Vec<Types>,
+    ) -> Result<Types, String> {
         let mut environment = Environment::new_node(&self.closure);
 
         // Define parameters as passed arguments
@@ -311,7 +313,7 @@ impl Callable for Function {
             Err(value) => match value {
                 CatBoxReturn::Err(s) => Err(s),
                 CatBoxReturn::Return(t) => Ok(t),
-            }
+            },
         }
     }
 }

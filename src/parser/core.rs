@@ -323,7 +323,7 @@ impl<'a> Parser<'a> {
     }
 
     fn return_statement(&self) -> Result<Statement, &'static str> {
-        match self.peek() { 
+        match self.peek() {
             Some(&Token::Semicolon) => {
                 self.advance();
                 Ok(Statement::Return(None))
@@ -449,11 +449,11 @@ impl<'a> Parser<'a> {
         let mut expr = self.addition()?;
 
         while let Some(t) = match self.peek() {
-            Some(&Token::Equal) |
-            Some(&Token::GreaterThan) |
-            Some(&Token::GreaterEqual) |
-            Some(&Token::LessThan) |
-            Some(&Token::LessEqual) => self.advance(),
+            Some(&Token::Equal)
+            | Some(&Token::GreaterThan)
+            | Some(&Token::GreaterEqual)
+            | Some(&Token::LessThan)
+            | Some(&Token::LessEqual) => self.advance(),
             _ => None,
         } {
             let right = self.addition()?;
@@ -541,11 +541,11 @@ impl<'a> Parser<'a> {
                         _ => Err("There should be a fucking right parentheses here!"),
                     }
                 }
-                Token::Number(_) |
-                Token::Nil |
-                Token::True |
-                Token::LoxString(_) |
-                Token::False => Ok(Expression::Literal(t.clone())),
+                Token::Number(_)
+                | Token::Nil
+                | Token::True
+                | Token::LoxString(_)
+                | Token::False => Ok(Expression::Literal(t.clone())),
                 Token::Ident(_) => Ok(Expression::Variable(t.clone())),
                 _ => Err("What the fuck is this shit!"),
             }
