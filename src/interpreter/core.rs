@@ -117,29 +117,29 @@ impl MutVisitor for Interpreter {
                     _ => Err(String::from("NO! NO! NO!")),
                 }
             }
-            &Expression::Call(ref callee_expr, ref arg_exprs) => {
+            &Expression::Call(ref callee_expr, ref argument_exprs) => {
                 let callee = match self.visit_expression(callee_expr)? {
                     Types::Callable(inner) => inner,
                     _ => return Err(String::from("You can't call this shit!")),
                 };
 
-                if arg_exprs.len() != callee.arity() {
+                if argument_exprs.len() != callee.arity() {
                     return Err(String::from(format!(
                         "This wants {} arguments and you passed it {}, try again dipshit",
                         callee.arity(),
-                        arg_exprs.len()
+                        argument_exprs.len()
                     )));
                 }
 
                 let mut arguments: Vec<Types> = Vec::new();
-                for e in arg_exprs {
+                for e in argument_exprs {
                     arguments.push(self.visit_expression(e)?);
                 }
 
                 Ok(callee.call(self, arguments)?)
             }
             &Expression::Grouping(ref expr) => self.visit_expression(expr),
-            &Expression::Literal(ref t) => match t.clone() {
+            &Expression::Literal(ref token) => match token.clone() {
                 Token::Number(i) => Ok(Types::Number(i)),
                 Token::True => Ok(Types::Boolean(true)),
                 Token::False => Ok(Types::Boolean(false)),
@@ -162,9 +162,9 @@ impl MutVisitor for Interpreter {
 
                 self.visit_expression(r_expr)
             }
-            &Expression::Unary(ref t, ref e) => {
-                let right = self.visit_expression(e)?;
-                match (right, t.clone()) {
+            &Expression::Unary(ref token, ref expr) => {
+                let right = self.visit_expression(expr)?;
+                match (right, token.clone()) {
                     (Types::Number(n), Token::Minus) => Ok(Types::Number(-n)),
                     (Types::Nil, Token::Bang) | (Types::Boolean(false), Token::Bang) => {
                         Ok(Types::Boolean(true))
@@ -188,23 +188,25 @@ impl MutVisitor for Interpreter {
                 self.execute_block(statements, environment)?;
                 Ok(())
             }
-            &Statement::Expression(ref e) => {
-                self.visit_expression(e)?;
+            &Statement::Expression(ref expr) => {
+                self.visit_expression(expr)?;
                 Ok(())
             }
-            &Statement::FunctionDeclaration(ref name, ref parameters, ref body) => {
+            &Statement::FunctionDeclaration(ref name_token, ref parameters, ref body) => {
                 let cbox_fn = Function {
                     parameters: parameters.clone(),
                     body: body.clone(),
                     closure: Environment::new_from(&self.current_environment),
                 };
-                self.current_environment
-                    .define(&name, Some(Types::Callable(Rc::new(Box::new(cbox_fn)))));
+                self.current_environment.define(
+                    &name_token,
+                    Some(Types::Callable(Rc::new(Box::new(cbox_fn)))),
+                );
                 Ok(())
             }
-            &Statement::If(ref conditional, ref then_stmt, ref else_option) => {
+            &Statement::If(ref conditional, ref then, ref else_option) => {
                 if is_truthy(&self.visit_expression(conditional)?) {
-                    self.visit_statement(then_stmt)?;
+                    self.visit_statement(then)?;
                 } else {
                     if let &Some(ref else_stmt) = else_option {
                         self.visit_statement(else_stmt)?;
