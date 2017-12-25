@@ -1,6 +1,6 @@
 use lexer::Token;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Expression {
     Assignment(Token, Box<Expression>),
     Binary(Box<Expression>, Token, Box<Expression>),

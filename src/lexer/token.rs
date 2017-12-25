@@ -1,11 +1,15 @@
-#[derive(Debug, PartialEq, Clone)]
+extern crate ordered_float;
+
+use self::ordered_float::OrderedFloat;
+
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub enum Token {
     // Characters
     Illegal,
     // Identifiers + literals
     Ident(String),
     LoxString(String),
-    Number(f64),
+    Number(OrderedFloat<f64>),
     Nil,
     // Operators
     Assign,

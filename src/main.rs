@@ -12,6 +12,7 @@ use catbox::ast_printer::*;
 use catbox::lexer::*;
 use catbox::parser::*;
 use catbox::interpreter::*;
+use catbox::resolver::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -117,6 +118,9 @@ fn run(res: &str, is_debug: bool, interpreter: &mut Interpreter) {
                 );
                 println!("Output ----");
             }
+
+            // Resolve variable bindings
+            resolve(&statements, interpreter);
 
             interpreter.interpret(&statements);
         }

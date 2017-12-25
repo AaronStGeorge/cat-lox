@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 use std::rc::Rc;
 use std::mem;
+use std::collections::HashMap;
 
 use ast::*;
 use lexer::*;
@@ -8,12 +9,17 @@ use super::environment::Environment;
 
 pub struct Interpreter {
     current_environment: Environment,
+    global_environment: Environment,
+    locals: HashMap<Expression, usize>,
 }
 
 impl Interpreter {
     pub fn new() -> Interpreter {
+        let global_environment = Environment::global();
         Interpreter {
-            current_environment: Environment::global(),
+            current_environment: Environment::new_from(&global_environment),
+            global_environment: global_environment,
+            locals: HashMap::new(),
         }
     }
 
@@ -71,7 +77,17 @@ impl MutVisitor for Interpreter {
         match e {
             &Expression::Assignment(ref token, ref expr) => {
                 let value = self.visit_expression(expr)?;
-                self.current_environment.assign(&token, value.clone())?;
+                let name = match token {
+                    &Token::Ident(ref name_s) => name_s,
+                    _ => unreachable!(),
+                };
+                match self.locals.get(e) {
+                    Some(distance) => {
+                        self.current_environment
+                            .assign_at(*distance, &token, value.clone())?
+                    }
+                    None => self.global_environment.assign(&token, value.clone())?,
+                };
                 Ok(value)
             }
             &Expression::Binary(ref l_expr, ref token, ref r_expr) => {
@@ -140,7 +156,7 @@ impl MutVisitor for Interpreter {
             }
             &Expression::Grouping(ref expr) => self.visit_expression(expr),
             &Expression::Literal(ref token) => match token.clone() {
-                Token::Number(i) => Ok(Types::Number(i)),
+                Token::Number(i) => Ok(Types::Number(i.into())),
                 Token::True => Ok(Types::Boolean(true)),
                 Token::False => Ok(Types::Boolean(false)),
                 Token::Nil => Ok(Types::Nil),
@@ -173,10 +189,22 @@ impl MutVisitor for Interpreter {
                     _ => Err(String::from("🖕🖕🖕🖕")),
                 }
             }
-            &Expression::Variable(ref token) => match self.current_environment.get(token)? {
-                Some(e) => Ok(e),
-                None => Ok(Types::Nil),
-            },
+            &Expression::Variable(ref token) => {
+                let name = match token {
+                    &Token::Ident(ref name_s) => name_s,
+                    _ => unreachable!(),
+                };
+                match self.locals.get(e) {
+                    Some(distance) => match self.current_environment.get_at(*distance, token)? {
+                        Some(t) => Ok(t),
+                        None => Ok(Types::Nil),
+                    },
+                    None => match self.global_environment.get(token)? {
+                        Some(t) => Ok(t),
+                        None => Ok(Types::Nil),
+                    },
+                }
+            }
         }
     }
 

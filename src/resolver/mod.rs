@@ -1,3 +1,3 @@
-// pub use self::core::Parser;
+pub use self::core::resolve;
 
 mod core;

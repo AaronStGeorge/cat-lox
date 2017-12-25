@@ -51,6 +51,22 @@ impl Environment {
         }
     }
 
+    pub fn assign_at(&mut self, distance : usize, name_token: &Token, value: Types) -> Result<(), String> {
+        match name_token {
+            &Token::Ident(ref name) => {
+                    if let Some(_) = self.cactus_stack[distance].borrow_mut().assign(name, &value) {
+                        return Ok(());
+                    }
+                Err(format!(
+                    "Internal interpreter error: can't assign {} at the {} level of the environment",
+                    name,
+                    distance
+                ))
+            }
+            _ => unreachable!(),
+        }
+    }
+
     pub fn define(&mut self, name: &Token, value: Option<Types>) -> () {
         match name {
             &Token::Ident(ref name) => {
@@ -61,8 +77,8 @@ impl Environment {
         }
     }
 
-    pub fn get(&self, name: &Token) -> Result<Option<Types>, String> {
-        match name {
+    pub fn get(&self, name_token: &Token) -> Result<Option<Types>, String> {
+        match name_token {
             &Token::Ident(ref name) => {
                 for e in self.cactus_stack.iter().rev() {
                     if let Some(value) = e.borrow().get(name) {
@@ -70,6 +86,22 @@ impl Environment {
                     }
                 }
                 Err(format!("{} is super fucking undefined", name))
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn get_at(&self, distance: usize, name_token: &Token) -> Result<Option<Types>, String> {
+        match name_token {
+            &Token::Ident(ref name) => {
+                if let Some(value) = self.cactus_stack[distance].borrow().get(name) {
+                    return Ok(value);
+                }
+                Err(format!(
+                    "Internal interpreter error: can't get {} at the {} level of the environment",
+                    name,
+                    distance
+                ))
             }
             _ => unreachable!(),
         }
