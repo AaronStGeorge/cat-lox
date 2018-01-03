@@ -107,7 +107,7 @@ fn run(res: &str, is_debug: bool, interpreter: &mut Interpreter) {
     }
 
     match Parser::new(&tokens).parse() {
-        Ok(statements) => {
+        Ok(mut statements) => {
             if is_debug {
                 println!("AST ----");
                 println!(
@@ -120,9 +120,10 @@ fn run(res: &str, is_debug: bool, interpreter: &mut Interpreter) {
             }
 
             // Resolve variable bindings
-            resolve(&statements, interpreter);
-
-            interpreter.interpret(&statements);
+            match resolve(&mut statements, interpreter) {
+                Ok(()) => interpreter.interpret(&statements),
+                Err(err) => println!("Resolver Error: {}", err),
+            }
         }
         Err(err) => println!("Parse Error: {}", err),
     }

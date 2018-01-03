@@ -67,6 +67,10 @@ impl Interpreter {
 
         Ok(())
     }
+
+    pub fn resolve(&mut self, expr: &Expression, i: usize) {
+        self.locals.insert(expr.clone(), i);
+    }
 }
 
 impl MutVisitor for Interpreter {
@@ -77,10 +81,6 @@ impl MutVisitor for Interpreter {
         match e {
             &Expression::Assignment(ref token, ref expr) => {
                 let value = self.visit_expression(expr)?;
-                let name = match token {
-                    &Token::Ident(ref name_s) => name_s,
-                    _ => unreachable!(),
-                };
                 match self.locals.get(e) {
                     Some(distance) => {
                         self.current_environment
@@ -190,10 +190,7 @@ impl MutVisitor for Interpreter {
                 }
             }
             &Expression::Variable(ref token) => {
-                let name = match token {
-                    &Token::Ident(ref name_s) => name_s,
-                    _ => unreachable!(),
-                };
+                println!("self.locals.len() {}", self.locals.len());
                 match self.locals.get(e) {
                     Some(distance) => match self.current_environment.get_at(*distance, token)? {
                         Some(t) => Ok(t),

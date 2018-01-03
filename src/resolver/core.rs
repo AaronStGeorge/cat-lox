@@ -3,10 +3,17 @@ use interpreter::Interpreter;
 use std::collections::HashMap;
 use lexer::Token;
 
-pub fn resolve(stmts: &[Statement], interpreter: &mut Interpreter) -> Result<(), String> {
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+enum FunctionType {
+    None,
+    Function,
+}
+
+pub fn resolve(stmts: &mut [Statement], interpreter: &mut Interpreter) -> Result<(), String> {
     let mut resolver = Resolver {
         interpreter: interpreter,
         scopes: Vec::new(),
+        function_type: FunctionType::None,
     };
     resolver.resolve(stmts)?;
 
@@ -17,6 +24,7 @@ pub fn resolve(stmts: &[Statement], interpreter: &mut Interpreter) -> Result<(),
 struct Resolver<'a> {
     interpreter: &'a mut Interpreter,
     scopes: Vec<HashMap<String, bool>>,
+    function_type: FunctionType,
 }
 
 impl<'a> Resolver<'a> {
@@ -27,20 +35,31 @@ impl<'a> Resolver<'a> {
         Ok(())
     }
 
-    fn declare(&mut self, name_token: &Token) {
+    fn declare(&mut self, name_token: &Token) -> Result<(), String> {
+        if self.scopes.is_empty() {
+            return Ok(());
+        }
+
         match name_token {
             &Token::Ident(ref name) => {
-                if self.scopes.is_empty() {
-                    return;
-                }
                 let len = self.scopes.len() - 1;
+                if self.scopes[len].contains_key(name) {
+                    return Err(String::from(
+                        "Variable with this name already declared in this scope",
+                    ));
+                }
                 self.scopes[len].insert(name.to_string(), false);
             }
             _ => unreachable!(),
         };
+        Ok(())
     }
 
     fn define(&mut self, name_token: &Token) {
+        if self.scopes.is_empty() {
+            return;
+        }
+
         match name_token {
             &Token::Ident(ref name) => {
                 if self.scopes.is_empty() {
@@ -62,17 +81,30 @@ impl<'a> Resolver<'a> {
     }
 
     fn resolve_local(&mut self, name: &str, expr: &Expression) {
+        println!("scopes len: {}", self.scopes.len());
         for i in (0..self.scopes.len()).rev() {
-            if self.scopes[i].contains_key(name) {}
+            if self.scopes[i].contains_key(name) {
+                println!("key found at: {}", i);
+                // Scopes does not include the global environment, the resolver
+                // will. Add one for this reason.
+                self.interpreter.resolve(expr, i + 1);
+                return;
+            }
         }
     }
 
-    fn resolve_fn(&mut self, function_stmt: &Statement) -> Result<(), String> {
+    fn resolve_fn(
+        &mut self,
+        function_stmt: &Statement,
+        function_type: FunctionType,
+    ) -> Result<(), String> {
+        let enclosing_function = self.function_type.clone();
+        self.function_type = function_type;
         match function_stmt {
             &Statement::FunctionDeclaration(_, ref parameters, ref body) => {
                 self.begin_scope();
                 for param in parameters {
-                    self.declare(param);
+                    self.declare(param)?;
                     self.define(param);
                 }
                 self.resolve(body)?;
@@ -81,6 +113,7 @@ impl<'a> Resolver<'a> {
             _ => unreachable!(),
         };
 
+        self.function_type = enclosing_function;
         Ok(())
     }
 }
@@ -97,7 +130,7 @@ impl<'a> MutVisitor for Resolver<'a> {
                     &Token::Ident(ref name_s) => name_s,
                     _ => unreachable!(),
                 };
-                self.resolve_local(name, expr);
+                self.resolve_local(name, e);
                 Ok(())
             }
             &Expression::Binary(ref l_expr, _, ref r_expr) => {
@@ -121,12 +154,16 @@ impl<'a> MutVisitor for Resolver<'a> {
             }
             &Expression::Unary(_, ref expr) => self.visit_expression(expr),
             &Expression::Variable(ref name_token) => {
+                // We're in the global scope do nothing
+                if self.scopes.is_empty() {
+                    return Ok(());
+                }
                 let name = match name_token {
                     &Token::Ident(ref name_s) => name_s,
                     _ => unreachable!(),
                 };
                 let len = self.scopes.len() - 1;
-                if self.scopes.is_empty() || self.scopes[len].get(name) != Some(&true) {
+                if self.scopes[len].get(name) == Some(&false) {
                     return Err(String::from(
                         "Cannot read local variable in its own initializer.",
                     ));
@@ -150,9 +187,9 @@ impl<'a> MutVisitor for Resolver<'a> {
                 Ok(())
             }
             &Statement::FunctionDeclaration(ref name, _, _) => {
-                self.declare(name);
+                self.declare(name)?;
                 self.define(name);
-                self.resolve_fn(s)?;
+                self.resolve_fn(s, FunctionType::Function)?;
                 Ok(())
             }
             &Statement::If(ref condition, ref then, ref else_option) => {
@@ -168,13 +205,16 @@ impl<'a> MutVisitor for Resolver<'a> {
                 Ok(())
             }
             &Statement::Return(ref expr_option) => {
+                if self.function_type == FunctionType::None {
+                    return Err(String::from("Cannot return from top level code"));
+                }
                 if let &Some(ref expr) = expr_option {
                     self.visit_expression(expr)?;
                 }
                 Ok(())
             }
             &Statement::VariableDeclaration(ref name, ref initializer) => {
-                self.declare(name);
+                self.declare(name)?;
                 match initializer {
                     &Some(ref expr) => self.visit_expression(expr)?,
                     _ => (),

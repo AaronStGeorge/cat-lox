@@ -36,15 +36,15 @@ impl Environment {
 
     pub fn assign(&mut self, name: &Token, value: Types) -> Result<(), String> {
         match name {
-            &Token::Ident(ref s) => {
+            &Token::Ident(ref name) => {
                 for e in self.cactus_stack.iter_mut().rev() {
-                    if let Some(_) = e.borrow_mut().assign(s, &value) {
+                    if let Some(_) = e.borrow_mut().assign(name, &value) {
                         return Ok(());
                     }
                 }
                 Err(String::from(
-                    "Why the fuck would you try to assign \
-                     to something that hasn't been defined?!?!",
+                    format!("{} is undefined why would you try to assign \
+                     to something that hasn't been defined?!?!", name),
                 ))
             }
             _ => unreachable!(),
@@ -54,9 +54,10 @@ impl Environment {
     pub fn assign_at(&mut self, distance : usize, name_token: &Token, value: Types) -> Result<(), String> {
         match name_token {
             &Token::Ident(ref name) => {
-                    if let Some(_) = self.cactus_stack[distance].borrow_mut().assign(name, &value) {
-                        return Ok(());
-                    }
+                if let Some(_) = self.cactus_stack[distance].borrow_mut().assign(name, &value) {
+                    return Ok(());
+                }
+
                 Err(format!(
                     "Internal interpreter error: can't assign {} at the {} level of the environment",
                     name,
@@ -94,6 +95,7 @@ impl Environment {
     pub fn get_at(&self, distance: usize, name_token: &Token) -> Result<Option<Types>, String> {
         match name_token {
             &Token::Ident(ref name) => {
+                println!("name : {}, distance: {}, environment size: {}", name, distance, self.cactus_stack.len());
                 if let Some(value) = self.cactus_stack[distance].borrow().get(name) {
                     return Ok(value);
                 }
