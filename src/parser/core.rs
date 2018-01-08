@@ -2,6 +2,9 @@ use ast::*;
 use lexer::*;
 use std::cell::Cell;
 
+extern crate uuid;
+use self::uuid::Uuid;
+
 pub struct Parser<'a> {
     tokens: &'a [Token],
     index: Cell<usize>,
@@ -267,7 +270,13 @@ impl<'a> Parser<'a> {
 
         body = match condition {
             Some(condition_inner) => Statement::While(condition_inner, Box::new(body)),
-            None => Statement::While(Expression::Literal(Token::True), Box::new(body)),
+            None => Statement::While(
+                Expression::Literal {
+                    id: Uuid::new_v4(),
+                    token: Token::True,
+                },
+                Box::new(body),
+            ),
         };
 
         if let Some(initializer_inner) = initializer {
@@ -393,8 +402,12 @@ impl<'a> Parser<'a> {
             let value = self.assignment()?;
 
             match expr {
-                Expression::Variable(token) => {
-                    return Ok(Expression::Assignment(token, Box::new(value)))
+                Expression::Variable { name: token, .. } => {
+                    return Ok(Expression::Assignment {
+                        id: Uuid::new_v4(),
+                        name: token,
+                        expr: Box::new(value),
+                    })
                 }
                 _ => return Err("Are you trying to assign something? Get it the fuck right!"),
             }
@@ -411,7 +424,12 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             let right = self.and()?;
-            expr = Expression::Logical(Box::new(expr), t.clone(), Box::new(right));
+            expr = Expression::Logical {
+                id: Uuid::new_v4(),
+                l_expr: Box::new(expr),
+                operator: t.clone(),
+                r_expr: Box::new(right),
+            };
         }
 
         Ok(expr)
@@ -425,7 +443,12 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             let right = self.equality()?;
-            expr = Expression::Logical(Box::new(expr), t.clone(), Box::new(right));
+            expr = Expression::Logical {
+                id: Uuid::new_v4(),
+                l_expr: Box::new(expr),
+                operator: t.clone(),
+                r_expr: Box::new(right),
+            };
         }
 
         Ok(expr)
@@ -439,7 +462,12 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             let right = self.comparison()?;
-            expr = Expression::Binary(Box::new(expr), t.clone(), Box::new(right));
+            expr = Expression::Binary {
+                id: Uuid::new_v4(),
+                l_expr: Box::new(expr),
+                operator: t.clone(),
+                r_expr: Box::new(right),
+            };
         }
 
         Ok(expr)
@@ -457,7 +485,12 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             let right = self.addition()?;
-            expr = Expression::Binary(Box::new(expr), t.clone(), Box::new(right));
+            expr = Expression::Binary {
+                id: Uuid::new_v4(),
+                l_expr: Box::new(expr),
+                operator: t.clone(),
+                r_expr: Box::new(right),
+            };
         }
 
         Ok(expr)
@@ -471,7 +504,12 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             let right = self.multiplication()?;
-            expr = Expression::Binary(Box::new(expr), t.clone(), Box::new(right));
+            expr = Expression::Binary {
+                id: Uuid::new_v4(),
+                l_expr: Box::new(expr),
+                operator: t.clone(),
+                r_expr: Box::new(right),
+            };
         }
 
         Ok(expr)
@@ -485,7 +523,12 @@ impl<'a> Parser<'a> {
             _ => None,
         } {
             let right = self.unary()?;
-            expr = Expression::Binary(Box::new(expr), t.clone(), Box::new(right));
+            expr = Expression::Binary {
+                id: Uuid::new_v4(),
+                l_expr: Box::new(expr),
+                operator: t.clone(),
+                r_expr: Box::new(right),
+            };
         }
 
         Ok(expr)
@@ -496,7 +539,11 @@ impl<'a> Parser<'a> {
             Some(t) if *t == Token::Bang || *t == Token::Minus => {
                 self.advance();
                 let right = self.unary()?;
-                return Ok(Expression::Unary(t.clone(), Box::new(right)));
+                return Ok(Expression::Unary {
+                    id: Uuid::new_v4(),
+                    operator: t.clone(),
+                    expr: Box::new(right),
+                });
             }
             _ => self.call(),
         }
@@ -523,7 +570,13 @@ impl<'a> Parser<'a> {
                 }
             }
             match self.advance() {
-                Some(&Token::RightParentheses) => expr = Expression::Call(Box::new(expr), args),
+                Some(&Token::RightParentheses) => {
+                    expr = Expression::Call {
+                        id: Uuid::new_v4(),
+                        callee: Box::new(expr),
+                        arguments: args,
+                    }
+                }
                 _ => return Err("If you're trying to fucking call that try harder."),
             }
         }
@@ -537,7 +590,10 @@ impl<'a> Parser<'a> {
                 Token::LeftParentheses => {
                     let expr = self.expression()?;
                     match self.advance() {
-                        Some(&Token::RightParentheses) => Ok(Expression::Grouping(Box::new(expr))),
+                        Some(&Token::RightParentheses) => Ok(Expression::Grouping {
+                            id: Uuid::new_v4(),
+                            expr: Box::new(expr),
+                        }),
                         _ => Err("There should be a fucking right parentheses here!"),
                     }
                 }
@@ -545,8 +601,14 @@ impl<'a> Parser<'a> {
                 | Token::Nil
                 | Token::True
                 | Token::LoxString(_)
-                | Token::False => Ok(Expression::Literal(t.clone())),
-                Token::Ident(_) => Ok(Expression::Variable(t.clone())),
+                | Token::False => Ok(Expression::Literal {
+                    id: Uuid::new_v4(),
+                    token: t.clone(),
+                }),
+                Token::Ident(_) => Ok(Expression::Variable {
+                    id: Uuid::new_v4(),
+                    name: t.clone(),
+                }),
                 _ => Err("What the fuck is this shit!"),
             }
         } else {

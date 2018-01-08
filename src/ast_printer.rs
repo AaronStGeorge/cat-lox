@@ -11,34 +11,34 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
 
     fn visit_expression(&self, expr: &Expression) -> String {
         match *expr {
-            Expression::Assignment(ref token, ref expr) => {
-                format!("(Assignment {:?} {})", token, self.visit_expression(expr))
+            Expression::Assignment{ref name, ref expr, ..} => {
+                format!("(Assignment {:?} {})", name, self.visit_expression(expr))
             }
-            Expression::Binary(ref expr1, ref token, ref expr2) => format!(
+            Expression::Binary{ref l_expr, ref operator, ref r_expr, ..} => format!(
                 "(Binary {:?} {} {})",
-                token,
-                self.visit_expression(expr1),
-                self.visit_expression(expr2)
+                operator,
+                self.visit_expression(l_expr),
+                self.visit_expression(r_expr)
             ),
-            Expression::Call(ref callee, ref args) => format!(
+            Expression::Call{ref callee, ref arguments, ..} => format!(
                 "(Call {} {})",
                 self.visit_expression(callee),
-                args.iter()
+                arguments.iter()
                     .map(|e| self.visit_expression(e))
                     .collect::<String>()
             ),
-            Expression::Grouping(ref expr) => format!("(Grouping {})", self.visit_expression(expr)),
-            Expression::Literal(ref token) => format!("(Literal {:?})", token),
-            Expression::Logical(ref expr1, ref token, ref expr2) => format!(
+            Expression::Grouping{ref expr, ..} => format!("(Grouping {})", self.visit_expression(expr)),
+            Expression::Literal{ref token, ..} => format!("(Literal {:?})", token),
+            Expression::Logical{ref l_expr, ref operator, ref r_expr, ..} => format!(
                 "(Logical {:?} {} {})",
-                token,
-                self.visit_expression(expr1),
-                self.visit_expression(expr2)
+                operator,
+                self.visit_expression(l_expr),
+                self.visit_expression(r_expr)
             ),
-            Expression::Unary(ref token, ref expr) => {
-                format!("(Unary {:?} {})", token, self.visit_expression(expr))
+            Expression::Unary{ref operator, ref expr, ..} => {
+                format!("(Unary {:?} {})", operator, self.visit_expression(expr))
             }
-            Expression::Variable(ref token) => format!("(Variable {:?})", token),
+            Expression::Variable{ref name, ..} => format!("(Variable {:?})", name),
         }
     }
 

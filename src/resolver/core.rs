@@ -124,41 +124,55 @@ impl<'a> MutVisitor for Resolver<'a> {
 
     fn visit_expression(&mut self, e: &Expression) -> Self::E {
         match e {
-            &Expression::Assignment(ref token, ref expr) => {
+            &Expression::Assignment {
+                ref name, ref expr, ..
+            } => {
                 self.visit_expression(expr)?;
-                let name = match token {
+                let name = match name {
                     &Token::Ident(ref name_s) => name_s,
                     _ => unreachable!(),
                 };
                 self.resolve_local(name, e);
                 Ok(())
             }
-            &Expression::Binary(ref l_expr, _, ref r_expr) => {
+            &Expression::Binary {
+                ref l_expr,
+                ref r_expr,
+                ..
+            } => {
                 self.visit_expression(l_expr)?;
                 self.visit_expression(r_expr)?;
                 Ok(())
             }
-            &Expression::Call(ref callee_expr, ref argument_exprs) => {
-                self.visit_expression(callee_expr)?;
-                for expr in argument_exprs {
+            &Expression::Call {
+                ref callee,
+                ref arguments,
+                ..
+            } => {
+                self.visit_expression(callee)?;
+                for expr in arguments {
                     self.visit_expression(expr)?;
                 }
                 Ok(())
             }
-            &Expression::Grouping(ref inner) => self.visit_expression(inner),
-            &Expression::Literal(_) => Ok(()),
-            &Expression::Logical(ref l_expr, _, ref r_expr) => {
+            &Expression::Grouping { ref expr, .. } => self.visit_expression(expr),
+            &Expression::Literal { .. } => Ok(()),
+            &Expression::Logical {
+                ref l_expr,
+                ref r_expr,
+                ..
+            } => {
                 self.visit_expression(l_expr)?;
                 self.visit_expression(r_expr)?;
                 Ok(())
             }
-            &Expression::Unary(_, ref expr) => self.visit_expression(expr),
-            &Expression::Variable(ref name_token) => {
+            &Expression::Unary { ref expr, .. } => self.visit_expression(expr),
+            &Expression::Variable { ref name, .. } => {
                 // We're in the global scope do nothing
                 if self.scopes.is_empty() {
                     return Ok(());
                 }
-                let name = match name_token {
+                let name = match name {
                     &Token::Ident(ref name_s) => name_s,
                     _ => unreachable!(),
                 };

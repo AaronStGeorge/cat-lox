@@ -79,21 +79,28 @@ impl MutVisitor for Interpreter {
 
     fn visit_expression(&mut self, e: &Expression) -> Self::E {
         match e {
-            &Expression::Assignment(ref token, ref expr) => {
+            &Expression::Assignment {
+                ref name, ref expr, ..
+            } => {
                 let value = self.visit_expression(expr)?;
                 match self.locals.get(e) {
                     Some(distance) => {
                         self.current_environment
-                            .assign_at(*distance, &token, value.clone())?
+                            .assign_at(*distance, &name, value.clone())?
                     }
-                    None => self.global_environment.assign(&token, value.clone())?,
+                    None => self.global_environment.assign(&name, value.clone())?,
                 };
                 Ok(value)
             }
-            &Expression::Binary(ref l_expr, ref token, ref r_expr) => {
+            &Expression::Binary {
+                ref l_expr,
+                ref operator,
+                ref r_expr,
+                ..
+            } => {
                 let right = self.visit_expression(r_expr)?;
                 let left = self.visit_expression(l_expr)?;
-                match (left, token.clone(), right) {
+                match (left, operator.clone(), right) {
                     (Types::ReturnString(mut ls), Token::Plus, Types::ReturnString(rs)) => {
                         ls.push_str(&rs);
                         Ok(Types::ReturnString(ls))
@@ -133,29 +140,33 @@ impl MutVisitor for Interpreter {
                     _ => Err(String::from("NO! NO! NO!")),
                 }
             }
-            &Expression::Call(ref callee_expr, ref argument_exprs) => {
-                let callee = match self.visit_expression(callee_expr)? {
+            &Expression::Call {
+                ref callee,
+                ref arguments,
+                ..
+            } => {
+                let callee = match self.visit_expression(callee)? {
                     Types::Callable(inner) => inner,
                     _ => return Err(String::from("You can't call this shit!")),
                 };
 
-                if argument_exprs.len() != callee.arity() {
+                if arguments.len() != callee.arity() {
                     return Err(String::from(format!(
                         "This wants {} arguments and you passed it {}, try again dipshit",
                         callee.arity(),
-                        argument_exprs.len()
+                        arguments.len()
                     )));
                 }
 
-                let mut arguments: Vec<Types> = Vec::new();
-                for e in argument_exprs {
-                    arguments.push(self.visit_expression(e)?);
+                let mut interpreted_arguments: Vec<Types> = Vec::new();
+                for expr in arguments {
+                    interpreted_arguments.push(self.visit_expression(expr)?);
                 }
 
-                Ok(callee.call(self, arguments)?)
+                Ok(callee.call(self, interpreted_arguments)?)
             }
-            &Expression::Grouping(ref expr) => self.visit_expression(expr),
-            &Expression::Literal(ref token) => match token.clone() {
+            &Expression::Grouping { ref expr, .. } => self.visit_expression(expr),
+            &Expression::Literal { ref token, .. } => match token.clone() {
                 Token::Number(i) => Ok(Types::Number(i.into())),
                 Token::True => Ok(Types::Boolean(true)),
                 Token::False => Ok(Types::Boolean(false)),
@@ -163,10 +174,15 @@ impl MutVisitor for Interpreter {
                 Token::LoxString(s) => Ok(Types::ReturnString(s)),
                 _ => Err(String::from("🐑💨")),
             },
-            &Expression::Logical(ref l_expr, ref token, ref r_expr) => {
+            &Expression::Logical {
+                ref l_expr,
+                ref operator,
+                ref r_expr,
+                ..
+            } => {
                 let left_result = self.visit_expression(l_expr)?;
 
-                if token == &Token::LogicOr {
+                if operator == &Token::LogicOr {
                     if is_truthy(&left_result) {
                         return Ok(left_result);
                     }
@@ -178,9 +194,13 @@ impl MutVisitor for Interpreter {
 
                 self.visit_expression(r_expr)
             }
-            &Expression::Unary(ref token, ref expr) => {
+            &Expression::Unary {
+                ref operator,
+                ref expr,
+                ..
+            } => {
                 let right = self.visit_expression(expr)?;
-                match (right, token.clone()) {
+                match (right, operator.clone()) {
                     (Types::Number(n), Token::Minus) => Ok(Types::Number(-n)),
                     (Types::Nil, Token::Bang) | (Types::Boolean(false), Token::Bang) => {
                         Ok(Types::Boolean(true))
@@ -189,14 +209,14 @@ impl MutVisitor for Interpreter {
                     _ => Err(String::from("🖕🖕🖕🖕")),
                 }
             }
-            &Expression::Variable(ref token) => {
+            &Expression::Variable { ref name, .. } => {
                 println!("self.locals.len() {}", self.locals.len());
                 match self.locals.get(e) {
-                    Some(distance) => match self.current_environment.get_at(*distance, token)? {
+                    Some(distance) => match self.current_environment.get_at(*distance, name)? {
                         Some(t) => Ok(t),
                         None => Ok(Types::Nil),
                     },
-                    None => match self.global_environment.get(token)? {
+                    None => match self.global_environment.get(name)? {
                         Some(t) => Ok(t),
                         None => Ok(Types::Nil),
                     },
