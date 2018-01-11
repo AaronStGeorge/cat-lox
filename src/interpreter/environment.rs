@@ -95,7 +95,6 @@ impl Environment {
     pub fn get_at(&self, distance: usize, name_token: &Token) -> Result<Option<Types>, String> {
         match name_token {
             &Token::Ident(ref name) => {
-                println!("name : {}, distance: {}, environment size: {}", name, distance, self.cactus_stack.len());
                 if let Some(value) = self.cactus_stack[distance].borrow().get(name) {
                     return Ok(value);
                 }

@@ -209,19 +209,16 @@ impl MutVisitor for Interpreter {
                     _ => Err(String::from("🖕🖕🖕🖕")),
                 }
             }
-            &Expression::Variable { ref name, .. } => {
-                println!("self.locals.len() {}", self.locals.len());
-                match self.locals.get(e) {
-                    Some(distance) => match self.current_environment.get_at(*distance, name)? {
-                        Some(t) => Ok(t),
-                        None => Ok(Types::Nil),
-                    },
-                    None => match self.global_environment.get(name)? {
-                        Some(t) => Ok(t),
-                        None => Ok(Types::Nil),
-                    },
-                }
-            }
+            &Expression::Variable { ref name, .. } => match self.locals.get(e) {
+                Some(distance) => match self.current_environment.get_at(*distance, name)? {
+                    Some(t) => Ok(t),
+                    None => Ok(Types::Nil),
+                },
+                None => match self.global_environment.get(name)? {
+                    Some(t) => Ok(t),
+                    None => Ok(Types::Nil),
+                },
+            },
         }
     }
 

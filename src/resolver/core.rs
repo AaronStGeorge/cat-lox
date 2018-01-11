@@ -81,10 +81,8 @@ impl<'a> Resolver<'a> {
     }
 
     fn resolve_local(&mut self, name: &str, expr: &Expression) {
-        println!("scopes len: {}", self.scopes.len());
         for i in (0..self.scopes.len()).rev() {
             if self.scopes[i].contains_key(name) {
-                println!("key found at: {}", i);
                 // Scopes does not include the global environment, the resolver
                 // will. Add one for this reason.
                 self.interpreter.resolve(expr, i + 1);
