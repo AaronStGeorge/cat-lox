@@ -224,6 +224,7 @@ impl MutVisitor for Interpreter {
 
     fn visit_statement(&mut self, s: &Statement) -> Self::S {
         match s {
+            &Statement::Class(ref name, ref methods) => unimplemented!(),
             &Statement::Block(ref statements) => {
                 let mut environment = Environment::new_node(&self.current_environment);
 

@@ -44,6 +44,15 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
 
     fn visit_statement(&self, s: &Statement) -> String {
         match *s {
+            Statement::Class(ref name, ref methods) => format!(
+                "(ClassDeclaration Statement \n\tname: {:?} \n\tmethods: [{}])",
+                name,
+                methods.iter()
+                    .map(|s| self.visit_statement(s))
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            ),
+
             Statement::Block(ref statements) => format!(
                 "(Block Statement {})",
                 statements

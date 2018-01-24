@@ -110,6 +110,10 @@ impl<'a> Parser<'a> {
 
     fn declaration(&self) -> Result<Statement, &'static str> {
         match self.peek() {
+            Some(&Token::Class) => {
+                self.advance();
+                self.class_declaration()
+            }
             Some(&Token::Let) => {
                 self.advance();
                 self.var_declaration()
@@ -119,6 +123,35 @@ impl<'a> Parser<'a> {
                 self.function_declaration()
             }
             _ => self.statement(),
+        }
+    }
+
+    fn class_declaration(&self) -> Result<Statement, &'static str> {
+        let name = match self.advance() {
+            Some(t @ &Token::Ident(_)) => t.clone(),
+            _ => return Err("Classes need an identifier dumbass!"),
+        };
+        match self.peek() {
+            Some(&Token::LeftBrace) => {
+                self.advance();
+            }
+            _ => return Err("There should be a left brace when defining a class! Dick."),
+        }
+
+        let mut methods: Vec<Statement> = Vec::new();
+        while match self.peek() {
+            Some(&Token::RightBrace) | None => false,
+            _ => true,
+        } {
+            methods.push(self.function_declaration()?);
+        }
+
+        match self.peek() {
+            Some(&Token::RightBrace) => {
+                self.advance();
+                Ok(Statement::Class(name, methods))
+            }
+            _ => Err("There should be a fucking right brace when defining a class!"),
         }
     }
 

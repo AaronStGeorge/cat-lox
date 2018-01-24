@@ -188,6 +188,11 @@ impl<'a> MutVisitor for Resolver<'a> {
 
     fn visit_statement(&mut self, s: &Statement) -> Self::S {
         match s {
+            &Statement::Class(ref name, ..) => {
+                self.declare(name)?;
+                self.define(name);
+                Ok(())
+            }
             &Statement::Block(ref statements) => {
                 self.begin_scope();
                 self.resolve(statements)?;

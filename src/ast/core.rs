@@ -49,16 +49,16 @@ pub enum Expression {
 }
 
 impl Expression {
-    fn get_id(&self) -> Uuid {
+    fn get_id(&self) -> &Uuid {
         match self {
-            &Expression::Assignment { ref id, .. } => id.clone(),
-            &Expression::Binary { ref id, .. } => id.clone(),
-            &Expression::Call { ref id, .. } => id.clone(),
-            &Expression::Grouping { ref id, .. } => id.clone(),
-            &Expression::Literal { ref id, .. } => id.clone(),
-            &Expression::Logical { ref id, .. } => id.clone(),
-            &Expression::Unary { ref id, .. } => id.clone(),
-            &Expression::Variable { ref id, .. } => id.clone(),
+            &Expression::Assignment { ref id, .. } => id,
+            &Expression::Binary { ref id, .. } => id,
+            &Expression::Call { ref id, .. } => id,
+            &Expression::Grouping { ref id, .. } => id,
+            &Expression::Literal { ref id, .. } => id,
+            &Expression::Logical { ref id, .. } => id,
+            &Expression::Unary { ref id, .. } => id,
+            &Expression::Variable { ref id, .. } => id,
         }
     }
 }
@@ -82,6 +82,7 @@ impl Eq for Expression {}
 
 #[derive(Clone, Debug)]
 pub enum Statement {
+    Class(Token, Vec<Statement>),
     Block(Vec<Statement>),
     Expression(Expression),
     FunctionDeclaration(Token, Vec<Token>, Vec<Statement>),

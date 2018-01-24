@@ -35,6 +35,7 @@ pub enum Token {
     LeftBrace,
     RightBrace,
     // Keywords
+    Class,
     Else,
     EOF,
     False,
@@ -51,6 +52,7 @@ pub enum Token {
 pub fn keyword(s: &str) -> Option<Token> {
     match s {
         "and" => Some(Token::LogicAnd),
+        "class" => Some(Token::Class),
         "else" => Some(Token::Else),
         "false" => Some(Token::False),
         "fn" => Some(Token::Function),

@@ -1,3 +1,5 @@
+print "You should see global twice";
+
 let a = "global";
 {
   fn showA() {
