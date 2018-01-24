@@ -224,7 +224,17 @@ impl MutVisitor for Interpreter {
 
     fn visit_statement(&mut self, s: &Statement) -> Self::S {
         match s {
-            &Statement::Class(ref name, ref methods) => unimplemented!(),
+            &Statement::Class(ref name_token, ref _methods) => match name_token {
+                &Token::Ident(ref name_string) => {
+                    let class = Class {
+                        name: name_string.clone(),
+                    };
+                    self.current_environment
+                        .define(name_token, Some(Types::Callable(Rc::new(Box::new(class)))));
+                    Ok(())
+                }
+                _ => unreachable!(),
+            },
             &Statement::Block(ref statements) => {
                 let mut environment = Environment::new_node(&self.current_environment);
 
@@ -363,9 +373,33 @@ impl Callable for Function {
     }
 }
 
-
 impl Display for Function {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "user defined function")
+    }
+}
+
+#[derive(Debug)]
+pub struct Class {
+    name: String,
+}
+
+impl Callable for Class {
+    fn arity(&self) -> usize {
+        0
+    }
+
+    fn call(
+        &self,
+        _interpreter: &mut Interpreter,
+        _arguments: Vec<Types>,
+    ) -> Result<Types, String> {
+        Ok(Types::Nil)
+    }
+}
+
+impl Display for Class {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{}", self.name)
     }
 }
