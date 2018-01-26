@@ -227,7 +227,9 @@ impl MutVisitor for Interpreter {
             &Statement::Class(ref name_token, ref _methods) => match name_token {
                 &Token::Ident(ref name_string) => {
                     let class = Class {
-                        name: name_string.clone(),
+                        class_data: ClassData {
+                            name: name_string.clone(),
+                        },
                     };
                     self.current_environment
                         .define(name_token, Some(Types::Callable(Rc::new(Box::new(class)))));
@@ -301,6 +303,7 @@ pub enum Types {
     ReturnString(String),
     Boolean(bool),
     Callable(Rc<Box<Callable>>),
+    Instance(Rc<Instance>),
     Nil,
 }
 
@@ -318,11 +321,12 @@ impl From<String> for CatBoxReturn {
 impl Display for Types {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
-            &Types::Number(n) => write!(f, "{}", n),
             &Types::Boolean(b) => write!(f, "{}", b),
-            &Types::ReturnString(ref s) => write!(f, "\"{}\"", s.to_string()),
-            &Types::Nil => write!(f, "nil"),
             &Types::Callable(ref c) => write!(f, "{}", c),
+            &Types::Instance(ref instance) => write!(f, "{}", instance),
+            &Types::Nil => write!(f, "nil"),
+            &Types::Number(n) => write!(f, "{}", n),
+            &Types::ReturnString(ref s) => write!(f, "\"{}\"", s.to_string()),
         }
     }
 }
@@ -381,6 +385,11 @@ impl Display for Function {
 
 #[derive(Debug)]
 pub struct Class {
+    class_data: ClassData,
+}
+
+#[derive(Debug, Clone)]
+struct ClassData {
     name: String,
 }
 
@@ -394,12 +403,29 @@ impl Callable for Class {
         _interpreter: &mut Interpreter,
         _arguments: Vec<Types>,
     ) -> Result<Types, String> {
-        Ok(Types::Nil)
+        Ok(Types::Instance(
+            (Rc::new(
+                (Instance {
+                    class_data: self.class_data.clone(),
+                }),
+            )),
+        ))
     }
 }
 
 impl Display for Class {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        write!(f, "{}", self.name)
+        write!(f, "{}", self.class_data.name)
+    }
+}
+
+#[derive(Debug)]
+pub struct Instance {
+    class_data: ClassData,
+}
+
+impl Display for Instance {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        write!(f, "{} instance", self.class_data.name)
     }
 }
