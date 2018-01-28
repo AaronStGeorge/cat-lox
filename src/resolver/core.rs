@@ -20,7 +20,6 @@ pub fn resolve(stmts: &mut [Statement], interpreter: &mut Interpreter) -> Result
     Ok(())
 }
 
-
 struct Resolver<'a> {
     interpreter: &'a mut Interpreter,
     scopes: Vec<HashMap<String, bool>>,
@@ -153,6 +152,7 @@ impl<'a> MutVisitor for Resolver<'a> {
                 }
                 Ok(())
             }
+            &Expression::Get { .. } => unimplemented!(),
             &Expression::Grouping { ref expr, .. } => self.visit_expression(expr),
             &Expression::Literal { .. } => Ok(()),
             &Expression::Logical {

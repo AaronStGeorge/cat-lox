@@ -23,6 +23,11 @@ pub enum Expression {
         callee: Box<Expression>,
         arguments: Vec<Expression>,
     },
+    Get {
+        id: Uuid,
+        expr: Box<Expression>,
+        name: Token,
+    },
     Grouping {
         id: Uuid,
         expr: Box<Expression>,
@@ -54,6 +59,7 @@ impl Expression {
             &Expression::Assignment { ref id, .. } => id,
             &Expression::Binary { ref id, .. } => id,
             &Expression::Call { ref id, .. } => id,
+            &Expression::Get { ref id, .. } => id,
             &Expression::Grouping { ref id, .. } => id,
             &Expression::Literal { ref id, .. } => id,
             &Expression::Logical { ref id, .. } => id,

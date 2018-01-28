@@ -165,6 +165,7 @@ impl MutVisitor for Interpreter {
 
                 Ok(callee.call(self, interpreted_arguments)?)
             }
+            &Expression::Get { .. } => unimplemented!(),
             &Expression::Grouping { ref expr, .. } => self.visit_expression(expr),
             &Expression::Literal { ref token, .. } => match token.clone() {
                 Token::Number(i) => Ok(Types::Number(i.into())),
