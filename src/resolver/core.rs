@@ -152,7 +152,7 @@ impl<'a> MutVisitor for Resolver<'a> {
                 }
                 Ok(())
             }
-            &Expression::Get { .. } => unimplemented!(),
+            &Expression::Get { ref expr, .. } => self.visit_expression(expr),
             &Expression::Grouping { ref expr, .. } => self.visit_expression(expr),
             &Expression::Literal { .. } => Ok(()),
             &Expression::Logical {

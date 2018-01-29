@@ -37,7 +37,9 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
                     .map(|e| self.visit_expression(e))
                     .collect::<String>()
             ),
-            Expression::Get { .. } => unimplemented!(),
+            Expression::Get {
+                ref name, ref expr, ..
+            } => format!("(Get {:?} {})", name, self.visit_expression(expr),),
             Expression::Grouping { ref expr, .. } => {
                 format!("(Grouping {})", self.visit_expression(expr))
             }

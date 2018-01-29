@@ -2,6 +2,7 @@ use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 use std::rc::Rc;
 use std::mem;
 use std::collections::HashMap;
+use std::cell::RefCell;
 
 use ast::*;
 use lexer::*;
@@ -165,7 +166,18 @@ impl MutVisitor for Interpreter {
 
                 Ok(callee.call(self, interpreted_arguments)?)
             }
-            &Expression::Get { .. } => unimplemented!(),
+            &Expression::Get {
+                ref name, ref expr, ..
+            } => match self.visit_expression(expr)? {
+                Types::Instance(mut instance) => match name {
+                    &Token::Ident(ref name) => match instance.borrow().get(name) {
+                        Some(get_return) => Ok(get_return.clone()),
+                        None => Err(format!("{} is a fucking undefined property!", name)),
+                    },
+                    _ => unreachable!(),
+                },
+                _ => Err(String::from("Only instances have properties asshole!")),
+            },
             &Expression::Grouping { ref expr, .. } => self.visit_expression(expr),
             &Expression::Literal { ref token, .. } => match token.clone() {
                 Token::Number(i) => Ok(Types::Number(i.into())),
@@ -304,7 +316,7 @@ pub enum Types {
     ReturnString(String),
     Boolean(bool),
     Callable(Rc<Box<Callable>>),
-    Instance(Rc<Instance>),
+    Instance(Rc<RefCell<Instance>>),
     Nil,
 }
 
@@ -324,7 +336,7 @@ impl Display for Types {
         match self {
             &Types::Boolean(b) => write!(f, "{}", b),
             &Types::Callable(ref c) => write!(f, "{}", c),
-            &Types::Instance(ref instance) => write!(f, "{}", instance),
+            &Types::Instance(ref instance) => write!(f, "{}", instance.borrow()),
             &Types::Nil => write!(f, "nil"),
             &Types::Number(n) => write!(f, "{}", n),
             &Types::ReturnString(ref s) => write!(f, "\"{}\"", s.to_string()),
@@ -404,13 +416,10 @@ impl Callable for Class {
         _interpreter: &mut Interpreter,
         _arguments: Vec<Types>,
     ) -> Result<Types, String> {
-        Ok(Types::Instance(
-            (Rc::new(
-                (Instance {
-                    class_data: self.class_data.clone(),
-                }),
-            )),
-        ))
+        Ok(Types::Instance(Rc::new(RefCell::new(Instance {
+            class_data: self.class_data.clone(),
+            fields: HashMap::new(),
+        }))))
     }
 }
 
@@ -423,6 +432,13 @@ impl Display for Class {
 #[derive(Debug)]
 pub struct Instance {
     class_data: ClassData,
+    fields: HashMap<String, Types>,
+}
+
+impl Instance {
+    fn get(&self, name: &str) -> Option<&Types> {
+        self.fields.get(name)
+    }
 }
 
 impl Display for Instance {

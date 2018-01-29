@@ -418,7 +418,6 @@ impl<'a> Parser<'a> {
         }
     }
 
-
     // Expressions =================================================================================
 
     fn expression(&self) -> Result<Expression, &'static str> {
@@ -585,32 +584,46 @@ impl<'a> Parser<'a> {
     fn call(&self) -> Result<Expression, &'static str> {
         let mut expr = self.primary()?;
 
-        while self.peek() == Some(&Token::LeftParentheses) {
-            self.advance();
-            let mut args: Vec<Expression> = Vec::new();
-            if self.peek() != Some(&Token::RightParentheses) {
-                loop {
-                    if args.len() >= 8 {
-                        return Err("More than 8 arguments are not allowed!");
-                    }
-                    args.push(self.expression()?);
-                    match self.peek() {
-                        Some(&Token::Comma) => {
-                            self.advance();
-                        }
-                        _ => break,
-                    }
-                }
-            }
+        while self.peek() == Some(&Token::LeftParentheses) || self.peek() == Some(&Token::Dot) {
             match self.advance() {
-                Some(&Token::RightParentheses) => {
-                    expr = Expression::Call {
-                        id: Uuid::new_v4(),
-                        callee: Box::new(expr),
-                        arguments: args,
+                Some(&Token::LeftParentheses) => {
+                    let mut args: Vec<Expression> = Vec::new();
+                    if self.peek() != Some(&Token::RightParentheses) {
+                        loop {
+                            if args.len() >= 8 {
+                                return Err("More than 8 arguments are not allowed!");
+                            }
+                            args.push(self.expression()?);
+                            match self.peek() {
+                                Some(&Token::Comma) => {
+                                    self.advance();
+                                }
+                                _ => break,
+                            }
+                        }
+                    }
+                    match self.advance() {
+                        Some(&Token::RightParentheses) => {
+                            expr = Expression::Call {
+                                id: Uuid::new_v4(),
+                                callee: Box::new(expr),
+                                arguments: args,
+                            }
+                        }
+                        _ => return Err("If you're trying to fucking call that try harder."),
                     }
                 }
-                _ => return Err("If you're trying to fucking call that try harder."),
+                Some(&Token::Dot) => match self.advance() {
+                    Some(name @ &Token::Ident(_)) => {
+                        expr = Expression::Get {
+                            id: Uuid::new_v4(),
+                            expr: Box::new(expr),
+                            name: name.clone(),
+                        }
+                    }
+                    _ => return Err("There's supposed to be a property after '.'"),
+                },
+                _ => unreachable!(),
             }
         }
 

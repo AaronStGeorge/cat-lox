@@ -21,6 +21,7 @@ impl Iterator for Lexer {
             Some(';') => Some(Token::Semicolon),
             Some('{') => Some(Token::LeftBrace),
             Some('}') => Some(Token::RightBrace),
+            Some('.') => Some(Token::Dot),
             Some('<') => match self.peek() {
                 Some('=') => {
                     self.advance();
@@ -144,24 +145,8 @@ impl Lexer {
 /// principle, investigate refactoring.
 fn is_blacklisted(c: &char) -> bool {
     let blacklist = vec![
-        '+',
-        '-',
-        '*',
-        '<',
-        '>',
-        '(',
-        ')',
-        ',',
-        ';',
-        '{',
-        '}',
-        '=',
-        '!',
-        '/',
-        ' ',
-        '\t',
-        '\r',
-        '\n',
+        '+', '-', '*', '<', '>', '(', ')', ',', ';', '{', '}', '=', '!', '/', ' ', '\t', '\r',
+        '\n', '.',
     ];
     blacklist.contains(c)
 }
