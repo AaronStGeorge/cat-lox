@@ -25,7 +25,7 @@ pub enum Expression {
     },
     Get {
         id: Uuid,
-        expr: Box<Expression>,
+        object: Box<Expression>,
         name: Token,
     },
     Grouping {
@@ -41,6 +41,12 @@ pub enum Expression {
         l_expr: Box<Expression>,
         operator: Token,
         r_expr: Box<Expression>,
+    },
+    Set {
+        id: Uuid,
+        name: Token,
+        object: Box<Expression>,
+        value: Box<Expression>,
     },
     Unary {
         id: Uuid,
@@ -63,6 +69,7 @@ impl Expression {
             &Expression::Grouping { ref id, .. } => id,
             &Expression::Literal { ref id, .. } => id,
             &Expression::Logical { ref id, .. } => id,
+            &Expression::Set { ref id, .. } => id,
             &Expression::Unary { ref id, .. } => id,
             &Expression::Variable { ref id, .. } => id,
         }

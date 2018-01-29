@@ -152,7 +152,7 @@ impl<'a> MutVisitor for Resolver<'a> {
                 }
                 Ok(())
             }
-            &Expression::Get { ref expr, .. } => self.visit_expression(expr),
+            &Expression::Get { ref object, .. } => self.visit_expression(object),
             &Expression::Grouping { ref expr, .. } => self.visit_expression(expr),
             &Expression::Literal { .. } => Ok(()),
             &Expression::Logical {
@@ -164,6 +164,7 @@ impl<'a> MutVisitor for Resolver<'a> {
                 self.visit_expression(r_expr)?;
                 Ok(())
             }
+            &Expression::Set { .. } => unimplemented!(),
             &Expression::Unary { ref expr, .. } => self.visit_expression(expr),
             &Expression::Variable { ref name, .. } => {
                 // We're in the global scope do nothing

@@ -167,8 +167,10 @@ impl MutVisitor for Interpreter {
                 Ok(callee.call(self, interpreted_arguments)?)
             }
             &Expression::Get {
-                ref name, ref expr, ..
-            } => match self.visit_expression(expr)? {
+                ref name,
+                ref object,
+                ..
+            } => match self.visit_expression(object)? {
                 Types::Instance(mut instance) => match name {
                     &Token::Ident(ref name) => match instance.borrow().get(name) {
                         Some(get_return) => Ok(get_return.clone()),
@@ -222,6 +224,7 @@ impl MutVisitor for Interpreter {
                     _ => Err(String::from("🖕🖕🖕🖕")),
                 }
             }
+            &Expression::Set { .. } => unimplemented!(),
             &Expression::Variable { ref name, .. } => match self.locals.get(e) {
                 Some(distance) => match self.current_environment.get_at(*distance, name)? {
                     Some(t) => Ok(t),

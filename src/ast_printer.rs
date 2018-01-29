@@ -38,8 +38,10 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
                     .collect::<String>()
             ),
             Expression::Get {
-                ref name, ref expr, ..
-            } => format!("(Get {:?} {})", name, self.visit_expression(expr),),
+                ref name,
+                ref object,
+                ..
+            } => format!("(Get {:?} {})", name, self.visit_expression(object)),
             Expression::Grouping { ref expr, .. } => {
                 format!("(Grouping {})", self.visit_expression(expr))
             }
@@ -54,6 +56,17 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
                 operator,
                 self.visit_expression(l_expr),
                 self.visit_expression(r_expr)
+            ),
+            Expression::Set {
+                ref name,
+                ref object,
+                ref value,
+                ..
+            } => format!(
+                "(Set \n\t name: {:?} \n\t object: {} \n\t value {})",
+                name,
+                self.visit_expression(object),
+                self.visit_expression(value)
             ),
             Expression::Unary {
                 ref operator,

@@ -434,11 +434,19 @@ impl<'a> Parser<'a> {
             let value = self.assignment()?;
 
             match expr {
-                Expression::Variable { name: token, .. } => {
+                Expression::Variable { name, .. } => {
                     return Ok(Expression::Assignment {
                         id: Uuid::new_v4(),
-                        name: token,
+                        name: name,
                         expr: Box::new(value),
+                    })
+                }
+                Expression::Get { name, object, .. } => {
+                    return Ok(Expression::Set {
+                        id: Uuid::new_v4(),
+                        name: name,
+                        object: object,
+                        value: Box::new(value),
                     })
                 }
                 _ => return Err("Are you trying to assign something? Get it the fuck right!"),
@@ -617,7 +625,7 @@ impl<'a> Parser<'a> {
                     Some(name @ &Token::Ident(_)) => {
                         expr = Expression::Get {
                             id: Uuid::new_v4(),
-                            expr: Box::new(expr),
+                            object: Box::new(expr),
                             name: name.clone(),
                         }
                     }
