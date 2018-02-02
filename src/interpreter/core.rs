@@ -224,7 +224,19 @@ impl MutVisitor for Interpreter {
                     _ => Err(String::from("🖕🖕🖕🖕")),
                 }
             }
-            &Expression::Set { .. } => unimplemented!(),
+            &Expression::Set {
+                ref name,
+                ref object,
+                ref value,
+                ..
+            } => match (name, self.visit_expression(object)?) {
+                (&Token::Ident(ref name), Types::Instance(ref instance)) => {
+                    let value = self.visit_expression(value)?;
+                    instance.borrow_mut().set(name.clone(), value.clone());
+                    Ok(value)
+                }
+                _ => Err(String::from("Only instances have fields dumbass!")),
+            },
             &Expression::Variable { ref name, .. } => match self.locals.get(e) {
                 Some(distance) => match self.current_environment.get_at(*distance, name)? {
                     Some(t) => Ok(t),
@@ -441,6 +453,10 @@ pub struct Instance {
 impl Instance {
     fn get(&self, name: &str) -> Option<&Types> {
         self.fields.get(name)
+    }
+
+    fn set(&mut self, name: String, value: Types) {
+        self.fields.insert(name, value);
     }
 }
 

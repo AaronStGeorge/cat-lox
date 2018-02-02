@@ -164,7 +164,15 @@ impl<'a> MutVisitor for Resolver<'a> {
                 self.visit_expression(r_expr)?;
                 Ok(())
             }
-            &Expression::Set { .. } => unimplemented!(),
+            &Expression::Set {
+                ref value,
+                ref object,
+                ..
+            } => {
+                self.visit_expression(value)?;
+                self.visit_expression(object)?;
+                Ok(())
+            }
             &Expression::Unary { ref expr, .. } => self.visit_expression(expr),
             &Expression::Variable { ref name, .. } => {
                 // We're in the global scope do nothing

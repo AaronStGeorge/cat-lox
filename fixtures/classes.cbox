@@ -6,4 +6,6 @@ class DevonshireCream {
 
 let instance = DevonshireCream();
 
-print instance;
+instance.name = "jane";
+
+print instance.name;
