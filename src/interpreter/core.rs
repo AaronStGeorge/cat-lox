@@ -252,15 +252,39 @@ impl MutVisitor for Interpreter {
 
     fn visit_statement(&mut self, s: &Statement) -> Self::S {
         match s {
-            &Statement::Class(ref name_token, ref _methods) => match name_token {
+            &Statement::Class(ref name_token, ref methods) => match name_token {
                 &Token::Ident(ref name_string) => {
+                    let mut methods_map = HashMap::new();
+                    for method_statement in methods {
+                        match method_statement {
+                            &Statement::FunctionDeclaration(ref name, ref parameters, ref body) => {
+                                let name = match name {
+                                    &Token::Ident(ref name) => name.clone(),
+                                    _ => unreachable!(),
+                                };
+
+                                let method = Function {
+                                    parameters: parameters.clone(),
+                                    body: body.clone(),
+                                    closure: Environment::new_from(&self.current_environment),
+                                };
+
+                                methods_map
+                                    .insert(name, Types::Callable(Rc::new(Box::new(method))));
+                            }
+                            _ => unreachable!(),
+                        }
+                    }
+
                     let class = Class {
                         class_data: ClassData {
                             name: name_string.clone(),
+                            methods: methods_map,
                         },
                     };
                     self.current_environment
                         .define(name_token, Some(Types::Callable(Rc::new(Box::new(class)))));
+
                     Ok(())
                 }
                 _ => unreachable!(),
@@ -419,6 +443,7 @@ pub struct Class {
 #[derive(Debug, Clone)]
 struct ClassData {
     name: String,
+    methods: HashMap<String, Types>,
 }
 
 impl Callable for Class {
@@ -452,7 +477,11 @@ pub struct Instance {
 
 impl Instance {
     fn get(&self, name: &str) -> Option<&Types> {
-        self.fields.get(name)
+        if self.fields.contains_key(name) {
+            self.fields.get(name)
+        } else {
+            self.class_data.methods.get(name)
+        }
     }
 
     fn set(&mut self, name: String, value: Types) {

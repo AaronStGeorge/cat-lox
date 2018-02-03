@@ -7,6 +7,7 @@ use lexer::Token;
 enum FunctionType {
     None,
     Function,
+    Method,
 }
 
 pub fn resolve(stmts: &mut [Statement], interpreter: &mut Interpreter) -> Result<(), String> {
@@ -197,7 +198,10 @@ impl<'a> MutVisitor for Resolver<'a> {
 
     fn visit_statement(&mut self, s: &Statement) -> Self::S {
         match s {
-            &Statement::Class(ref name, ..) => {
+            &Statement::Class(ref name, ref methods, ..) => {
+                for method in methods {
+                    self.resolve_fn(method, FunctionType::Method)?;
+                }
                 self.declare(name)?;
                 self.define(name);
                 Ok(())
