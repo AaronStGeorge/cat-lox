@@ -89,9 +89,14 @@ impl Iterator for Lexer {
 
                 loop {
                     match self.peek() {
-                        Some(next) => if is_blacklisted(&next) {
-                            break;
-                        },
+                        Some(next) => {
+                            if is_blacklisted(&next) {
+                                break;
+                            }
+                            if !is_part_of_number(current_char) && next == '.' {
+                                break;
+                            }
+                        }
                         None => break,
                     }
 
@@ -102,7 +107,7 @@ impl Iterator for Lexer {
 
                 if keyword(&literal).is_some() {
                     keyword(&literal)
-                } else if literal.chars().all(|c| c.is_digit(10) || c == '.') {
+                } else if literal.chars().all(is_part_of_number) {
                     Some(Token::Number(literal.parse::<f64>().unwrap()))
                 } else {
                     Some(Token::Ident(literal))
@@ -145,8 +150,11 @@ impl Lexer {
 /// principle, investigate refactoring.
 fn is_blacklisted(c: &char) -> bool {
     let blacklist = vec![
-        '+', '-', '*', '<', '>', '(', ')', ',', ';', '{', '}', '=', '!', '/', ' ', '\t', '\r',
-        '\n', '.',
+        '+', '-', '*', '<', '>', '(', ')', ',', ';', '{', '}', '=', '!', '/', ' ', '\t', '\r', '\n'
     ];
     blacklist.contains(c)
+}
+
+fn is_part_of_number(c: char) -> bool {
+    c.is_digit(10) || c == '.'
 }

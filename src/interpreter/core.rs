@@ -211,7 +211,9 @@ impl MutVisitor for Interpreter {
             }
             &Expression::This { .. } => {
                 if let Some(distance) = self.locals.get(e) {
-                    if let Some(instance) = self.current_environment.get_at(*distance, &Token::This)? {
+                    if let Some(instance) =
+                        self.current_environment.get_at(*distance, &Token::This)?
+                    {
                         return Ok(instance);
                     }
                 }
@@ -469,21 +471,29 @@ struct ClassData {
 
 impl Callable for Class {
     fn arity(&self) -> usize {
+        if let Some(initializer) = self.class_data.methods.get("init") {
+            return initializer.arity();
+        }
         0
     }
 
-    fn call(
-        &self,
-        _interpreter: &mut Interpreter,
-        _arguments: Vec<Types>,
-    ) -> Result<Types, String> {
+    fn call(&self, interpreter: &mut Interpreter, arguments: Vec<Types>) -> Result<Types, String> {
         let instance_data = InstanceData {
             fields: HashMap::new(),
         };
-        Ok(Types::Instance(Instance {
+
+        let instance = Types::Instance(Instance {
             class_data: self.class_data.clone(),
             instance_data: Rc::new(RefCell::new(instance_data)),
-        }))
+        });
+
+        if let Some(initializer) = self.class_data.methods.get("init") {
+            initializer
+                .bind(instance.clone())
+                .call(interpreter, arguments)?;
+        }
+
+        Ok(instance)
     }
 }
 

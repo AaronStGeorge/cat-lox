@@ -7,6 +7,7 @@ use lexer::Token;
 enum FunctionType {
     None,
     Function,
+    Initializer,
     Method,
 }
 
@@ -226,7 +227,17 @@ impl<'a> MutVisitor for Resolver<'a> {
                 self.scopes[len].insert(String::from("this"), true);
 
                 for method in methods {
-                    self.resolve_fn(method, FunctionType::Method)?;
+                    let function_type = match method {
+                        &Statement::FunctionDeclaration(ref name, _, _) => match name {
+                            &Token::Ident(ref fn_name) => match fn_name.as_ref() {
+                                "init" => FunctionType::Initializer,
+                                _ => FunctionType::Method,
+                            },
+                            _ => unreachable!(),
+                        },
+                        _ => unreachable!(),
+                    };
+                    self.resolve_fn(method, function_type)?;
                 }
                 self.end_scope();
 
@@ -264,6 +275,9 @@ impl<'a> MutVisitor for Resolver<'a> {
             &Statement::Return(ref expr_option) => {
                 if self.function_type == FunctionType::None {
                     return Err(String::from("Cannot return from top level code"));
+                }
+                if self.function_type == FunctionType::Initializer {
+                    return Err(String::from("Cannot return from initializer"));
                 }
                 if let &Some(ref expr) = expr_option {
                     self.visit_expression(expr)?;
