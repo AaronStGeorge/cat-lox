@@ -18,7 +18,7 @@ impl Interpreter {
     pub fn new() -> Interpreter {
         let global_environment = Environment::global();
         Interpreter {
-            current_environment: Environment::new_from(&global_environment),
+            current_environment: global_environment.clone(),
             global_environment: global_environment,
             locals: HashMap::new(),
         }
@@ -172,8 +172,8 @@ impl MutVisitor for Interpreter {
                 ..
             } => match self.visit_expression(object)? {
                 Types::Instance(mut instance) => match name {
-                    &Token::Ident(ref name) => match instance.borrow().get(name) {
-                        Some(get_return) => Ok(get_return.clone()),
+                    &Token::Ident(ref name) => match instance.get(name) {
+                        Some(get_return) => Ok(get_return),
                         None => Err(format!("{} is a fucking undefined property!", name)),
                     },
                     _ => unreachable!(),
@@ -209,6 +209,14 @@ impl MutVisitor for Interpreter {
 
                 self.visit_expression(r_expr)
             }
+            &Expression::This { .. } => {
+                if let Some(distance) = self.locals.get(e) {
+                    if let Some(instance) = self.current_environment.get_at(*distance, &Token::This)? {
+                        return Ok(instance);
+                    }
+                }
+                Err(String::from("Internal interpreter error: shit is fucked"))
+            }
             &Expression::Unary {
                 ref operator,
                 ref expr,
@@ -232,7 +240,7 @@ impl MutVisitor for Interpreter {
             } => match (name, self.visit_expression(object)?) {
                 (&Token::Ident(ref name), Types::Instance(ref instance)) => {
                     let value = self.visit_expression(value)?;
-                    instance.borrow_mut().set(name.clone(), value.clone());
+                    instance.set(name.clone(), value.clone());
                     Ok(value)
                 }
                 _ => Err(String::from("Only instances have fields dumbass!")),
@@ -266,21 +274,22 @@ impl MutVisitor for Interpreter {
                                 let method = Function {
                                     parameters: parameters.clone(),
                                     body: body.clone(),
-                                    closure: Environment::new_from(&self.current_environment),
+                                    closure: self.current_environment.clone(),
                                 };
 
-                                methods_map
-                                    .insert(name, Types::Callable(Rc::new(Box::new(method))));
+                                methods_map.insert(name, method);
                             }
                             _ => unreachable!(),
                         }
                     }
 
+                    let class_data = ClassData {
+                        name: name_string.clone(),
+                        methods: methods_map,
+                    };
+
                     let class = Class {
-                        class_data: ClassData {
-                            name: name_string.clone(),
-                            methods: methods_map,
-                        },
+                        class_data: Rc::new(class_data),
                     };
                     self.current_environment
                         .define(name_token, Some(Types::Callable(Rc::new(Box::new(class)))));
@@ -303,7 +312,7 @@ impl MutVisitor for Interpreter {
                 let cbox_fn = Function {
                     parameters: parameters.clone(),
                     body: body.clone(),
-                    closure: Environment::new_from(&self.current_environment),
+                    closure: self.current_environment.clone(),
                 };
                 self.current_environment.define(
                     &name_token,
@@ -355,7 +364,7 @@ pub enum Types {
     ReturnString(String),
     Boolean(bool),
     Callable(Rc<Box<Callable>>),
-    Instance(Rc<RefCell<Instance>>),
+    Instance(Instance),
     Nil,
 }
 
@@ -375,7 +384,7 @@ impl Display for Types {
         match self {
             &Types::Boolean(b) => write!(f, "{}", b),
             &Types::Callable(ref c) => write!(f, "{}", c),
-            &Types::Instance(ref instance) => write!(f, "{}", instance.borrow()),
+            &Types::Instance(ref instance) => write!(f, "{}", instance),
             &Types::Nil => write!(f, "nil"),
             &Types::Number(n) => write!(f, "{}", n),
             &Types::ReturnString(ref s) => write!(f, "\"{}\"", s.to_string()),
@@ -400,6 +409,18 @@ pub struct Function {
     parameters: Vec<Token>,
     body: Vec<Statement>,
     closure: Environment,
+}
+
+impl Function {
+    fn bind(&self, instance: Types) -> Function {
+        let mut environment = Environment::new_node(&self.closure);
+        environment.define(&Token::This, Some(instance));
+        Function {
+            parameters: self.parameters.clone(),
+            body: self.body.clone(),
+            closure: environment,
+        }
+    }
 }
 
 impl Callable for Function {
@@ -437,13 +458,13 @@ impl Display for Function {
 
 #[derive(Debug)]
 pub struct Class {
-    class_data: ClassData,
+    class_data: Rc<ClassData>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct ClassData {
     name: String,
-    methods: HashMap<String, Types>,
+    methods: HashMap<String, Function>,
 }
 
 impl Callable for Class {
@@ -456,10 +477,13 @@ impl Callable for Class {
         _interpreter: &mut Interpreter,
         _arguments: Vec<Types>,
     ) -> Result<Types, String> {
-        Ok(Types::Instance(Rc::new(RefCell::new(Instance {
-            class_data: self.class_data.clone(),
+        let instance_data = InstanceData {
             fields: HashMap::new(),
-        }))))
+        };
+        Ok(Types::Instance(Instance {
+            class_data: self.class_data.clone(),
+            instance_data: Rc::new(RefCell::new(instance_data)),
+        }))
     }
 }
 
@@ -470,22 +494,45 @@ impl Display for Class {
 }
 
 #[derive(Debug)]
-pub struct Instance {
-    class_data: ClassData,
+struct InstanceData {
     fields: HashMap<String, Types>,
 }
 
-impl Instance {
-    fn get(&self, name: &str) -> Option<&Types> {
-        if self.fields.contains_key(name) {
-            self.fields.get(name)
-        } else {
-            self.class_data.methods.get(name)
+impl InstanceData {
+    fn get(&self, name: &str) -> Option<Types> {
+        match self.fields.get(name) {
+            Some(return_value) => Some(return_value.clone()),
+            None => None,
         }
     }
 
     fn set(&mut self, name: String, value: Types) {
         self.fields.insert(name, value);
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Instance {
+    class_data: Rc<ClassData>,
+    instance_data: Rc<RefCell<InstanceData>>,
+}
+
+impl Instance {
+    fn get(&self, name: &str) -> Option<Types> {
+        match self.instance_data.borrow().get(name) {
+            some @ Some(_) => some,
+            None => match self.class_data.methods.get(name) {
+                Some(method) => {
+                    let new_method = method.bind(Types::Instance(self.clone()));
+                    Some(Types::Callable(Rc::new(Box::new(new_method))))
+                }
+                None => None,
+            },
+        }
+    }
+
+    fn set(&self, name: String, value: Types) {
+        self.instance_data.borrow_mut().set(name, value)
     }
 }
 

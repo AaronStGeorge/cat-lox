@@ -651,6 +651,7 @@ impl<'a> Parser<'a> {
                         _ => Err("There should be a fucking right parentheses here!"),
                     }
                 }
+                Token::This => Ok(Expression::This { id: Uuid::new_v4() }),
                 Token::Number(_)
                 | Token::Nil
                 | Token::True

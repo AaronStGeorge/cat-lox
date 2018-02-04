@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Environment {
     cactus_stack: Vec<Rc<RefCell<EnvironmentNode>>>,
 }
@@ -14,12 +14,6 @@ impl Environment {
     pub fn global() -> Environment {
         Environment {
             cactus_stack: vec![Rc::new(RefCell::new(EnvironmentNode::global()))],
-        }
-    }
-
-    pub fn new_from(environment: &Environment) -> Environment {
-        Environment {
-            cactus_stack: environment.cactus_stack.clone(),
         }
     }
 
@@ -42,19 +36,28 @@ impl Environment {
                         return Ok(());
                     }
                 }
-                Err(String::from(
-                    format!("{} is undefined why would you try to assign \
-                     to something that hasn't been defined?!?!", name),
-                ))
+                Err(String::from(format!(
+                    "{} is undefined why would you try to assign \
+                     to something that hasn't been defined?!?!",
+                    name
+                )))
             }
             _ => unreachable!(),
         }
     }
 
-    pub fn assign_at(&mut self, distance : usize, name_token: &Token, value: Types) -> Result<(), String> {
+    pub fn assign_at(
+        &mut self,
+        distance: usize,
+        name_token: &Token,
+        value: Types,
+    ) -> Result<(), String> {
         match name_token {
             &Token::Ident(ref name) => {
-                if let Some(_) = self.cactus_stack[distance].borrow_mut().assign(name, &value) {
+                if let Some(_) = self.cactus_stack[distance]
+                    .borrow_mut()
+                    .assign(name, &value)
+                {
                     return Ok(());
                 }
 
@@ -73,6 +76,12 @@ impl Environment {
             &Token::Ident(ref name) => {
                 let len = self.cactus_stack.len();
                 self.cactus_stack[len - 1].borrow_mut().define(name, value)
+            }
+            &Token::This => {
+                let len = self.cactus_stack.len();
+                self.cactus_stack[len - 1]
+                    .borrow_mut()
+                    .define("this", value)
             }
             _ => unreachable!(),
         }
@@ -100,15 +109,22 @@ impl Environment {
                 }
                 Err(format!(
                     "Internal interpreter error: can't get {} at the {} level of the environment",
-                    name,
-                    distance
+                    name, distance
+                ))
+            }
+            &Token::This => {
+                if let Some(value) = self.cactus_stack[distance].borrow().get("this") {
+                    return Ok(value);
+                }
+                Err(format!(
+                    "Internal interpreter error: can't get \"this\" at the {} level of the environment",
+                     distance
                 ))
             }
             _ => unreachable!(),
         }
     }
 }
-
 
 #[derive(Debug)]
 struct EnvironmentNode {

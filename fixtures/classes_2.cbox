@@ -1,0 +1,12 @@
+class Thing {
+  getCallback() {
+    fn localFunction() {
+      print this;
+    }
+
+    return localFunction;
+  }
+}
+
+let callback = Thing().getCallback();
+callback();

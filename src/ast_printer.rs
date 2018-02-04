@@ -68,6 +68,7 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
                 self.visit_expression(object),
                 self.visit_expression(value)
             ),
+            Expression::This { .. } => String::from("(this)"),
             Expression::Unary {
                 ref operator,
                 ref expr,

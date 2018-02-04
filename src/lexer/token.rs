@@ -46,6 +46,7 @@ pub enum Token {
     Let,
     Print,
     Return,
+    This,
     True,
     While,
 }
@@ -64,6 +65,7 @@ pub fn keyword(s: &str) -> Option<Token> {
         "or" => Some(Token::LogicOr),
         "print" => Some(Token::Print),
         "return" => Some(Token::Return),
+        "this" => Some(Token::This),
         "true" => Some(Token::True),
         "while" => Some(Token::While),
         &_ => None,

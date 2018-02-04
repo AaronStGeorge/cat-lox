@@ -1,0 +1,15 @@
+class Person {
+  sayName() {
+    print this.name;
+  }
+}
+
+let jane = Person();
+jane.name = "Jane";
+
+let bill = Person();
+bill.name = "Bill";
+
+bill.sayName();
+bill.sayName = jane.sayName;
+bill.sayName();

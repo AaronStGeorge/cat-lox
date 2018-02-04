@@ -10,11 +10,18 @@ enum FunctionType {
     Method,
 }
 
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+enum ClassType {
+    None,
+    Class,
+}
+
 pub fn resolve(stmts: &mut [Statement], interpreter: &mut Interpreter) -> Result<(), String> {
     let mut resolver = Resolver {
         interpreter: interpreter,
         scopes: Vec::new(),
         function_type: FunctionType::None,
+        class_type: ClassType::None,
     };
     resolver.resolve(stmts)?;
 
@@ -25,6 +32,7 @@ struct Resolver<'a> {
     interpreter: &'a mut Interpreter,
     scopes: Vec<HashMap<String, bool>>,
     function_type: FunctionType,
+    class_type: ClassType,
 }
 
 impl<'a> Resolver<'a> {
@@ -174,6 +182,13 @@ impl<'a> MutVisitor for Resolver<'a> {
                 self.visit_expression(object)?;
                 Ok(())
             }
+            &Expression::This { .. } => {
+                if self.class_type != ClassType::Class {
+                    return Err(String::from("You can't use this outside of a class!"));
+                }
+                self.resolve_local("this", e);
+                Ok(())
+            }
             &Expression::Unary { ref expr, .. } => self.visit_expression(expr),
             &Expression::Variable { ref name, .. } => {
                 // We're in the global scope do nothing
@@ -199,11 +214,23 @@ impl<'a> MutVisitor for Resolver<'a> {
     fn visit_statement(&mut self, s: &Statement) -> Self::S {
         match s {
             &Statement::Class(ref name, ref methods, ..) => {
+                self.declare(name)?;
+                self.define(name);
+
+                let enclosing_class = self.class_type.clone();
+                self.class_type = ClassType::Class;
+
+                self.begin_scope();
+                // resolve this
+                let len = self.scopes.len() - 1;
+                self.scopes[len].insert(String::from("this"), true);
+
                 for method in methods {
                     self.resolve_fn(method, FunctionType::Method)?;
                 }
-                self.declare(name)?;
-                self.define(name);
+                self.end_scope();
+
+                self.class_type = enclosing_class;
                 Ok(())
             }
             &Statement::Block(ref statements) => {
