@@ -69,7 +69,11 @@ impl Interpreter {
         Ok(())
     }
 
-    fn call_callable(&mut self, callee: &Callable, arguments: &Vec<Expression>) -> Result<Types, String> {
+    fn call_callable(
+        &mut self,
+        callee: &Callable,
+        arguments: &Vec<Expression>,
+    ) -> Result<Types, String> {
         if arguments.len() != callee.arity() {
             return Err(String::from(format!(
                 "This wants {} arguments and you passed it {}, try again dipshit",
@@ -312,7 +316,7 @@ impl MutVisitor for Interpreter {
                         class_data: Rc::new(class_data),
                     };
                     self.current_environment
-                        .define(class_name, Some(Types::Callable(Rc::new(Box::new(class)))));
+                        .define(class_name, Some(Types::Class(Rc::new(class))));
 
                     Ok(())
                 }
@@ -557,7 +561,16 @@ impl Instance {
                     let new_method = method.bind(Types::Instance(self.clone()));
                     Some(Types::Callable(Rc::new(Box::new(new_method))))
                 }
-                None => None,
+                None => match self.class_data.super_class {
+                    Some(ref super_class) => match super_class.methods.get(name) {
+                        Some(method) => {
+                            let new_method = method.bind(Types::Instance(self.clone()));
+                            Some(Types::Callable(Rc::new(Box::new(new_method))))
+                        }
+                        None => None,
+                    },
+                    None => None,
+                },
             },
         }
     }
