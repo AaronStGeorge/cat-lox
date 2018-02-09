@@ -262,7 +262,10 @@ impl MutVisitor for Interpreter {
 
     fn visit_statement(&mut self, s: &Statement) -> Self::S {
         match s {
-            &Statement::Class(ref name_token, ref methods) => match name_token {
+            &Statement::Class {
+                name: ref class_name,
+                ref methods,
+            } => match class_name {
                 &Token::Ident(ref name_string) => {
                     let mut methods_map = HashMap::new();
                     for method_statement in methods {
@@ -294,7 +297,7 @@ impl MutVisitor for Interpreter {
                         class_data: Rc::new(class_data),
                     };
                     self.current_environment
-                        .define(name_token, Some(Types::Callable(Rc::new(Box::new(class)))));
+                        .define(class_name, Some(Types::Callable(Rc::new(Box::new(class)))));
 
                     Ok(())
                 }

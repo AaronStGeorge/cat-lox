@@ -99,7 +99,10 @@ impl Eq for Expression {}
 
 #[derive(Clone, Debug)]
 pub enum Statement {
-    Class(Token, Vec<Statement>),
+    Class {
+        name: Token,
+        methods: Vec<Statement>,
+    },
     Block(Vec<Statement>),
     Expression(Expression),
     FunctionDeclaration(Token, Vec<Token>, Vec<Statement>),

@@ -80,7 +80,7 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
 
     fn visit_statement(&self, s: &Statement) -> String {
         match *s {
-            Statement::Class(ref name, ref methods) => format!(
+            Statement::Class{ref name, ref methods} => format!(
                 "(ClassDeclaration Statement \n\tname: {:?} \n\tmethods: [{}])",
                 name,
                 methods.iter()

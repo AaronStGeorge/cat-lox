@@ -214,7 +214,11 @@ impl<'a> MutVisitor for Resolver<'a> {
 
     fn visit_statement(&mut self, s: &Statement) -> Self::S {
         match s {
-            &Statement::Class(ref name, ref methods, ..) => {
+            &Statement::Class {
+                ref name,
+                ref methods,
+                ..
+            } => {
                 self.declare(name)?;
                 self.define(name);
 

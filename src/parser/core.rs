@@ -149,7 +149,7 @@ impl<'a> Parser<'a> {
         match self.peek() {
             Some(&Token::RightBrace) => {
                 self.advance();
-                Ok(Statement::Class(name, methods))
+                Ok(Statement::Class { name, methods })
             }
             _ => Err("There should be a fucking right brace when defining a class!"),
         }
