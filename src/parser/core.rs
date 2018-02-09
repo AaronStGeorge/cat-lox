@@ -131,13 +131,13 @@ impl<'a> Parser<'a> {
             Some(t @ &Token::Ident(_)) => t.clone(),
             _ => return Err("Classes need an identifier dumbass!"),
         };
-        let superclass = match self.peek() {
+        let super_class = match self.peek() {
             Some(&Token::LessThan) => {
                 self.advance();
                 match self.advance() {
-                    Some(superclass_name @ &Token::Ident(_)) => Some(Expression::Variable {
+                    Some(super_class_name @ &Token::Ident(_)) => Some(Expression::Variable {
                         id: Uuid::new_v4(),
-                        name: superclass_name.clone(),
+                        name: super_class_name.clone(),
                     }),
                     _ => return Err("There should be a superclass name here! You fucking asshole!"),
                 }
@@ -165,7 +165,7 @@ impl<'a> Parser<'a> {
                 Ok(Statement::Class {
                     name,
                     methods,
-                    superclass,
+                    super_class,
                 })
             }
             _ => Err("There should be a fucking right brace when defining a class!"),

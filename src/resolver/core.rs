@@ -217,7 +217,7 @@ impl<'a> MutVisitor for Resolver<'a> {
             &Statement::Class {
                 ref name,
                 ref methods,
-                ref superclass,
+                ref super_class,
             } => {
                 self.declare(name)?;
                 self.define(name);
@@ -225,8 +225,8 @@ impl<'a> MutVisitor for Resolver<'a> {
                 let enclosing_class = self.class_type.clone();
                 self.class_type = ClassType::Class;
 
-                if let &Some(ref superclass) = superclass {
-                    self.visit_expression(superclass)?;
+                if let &Some(ref super_class) = super_class {
+                    self.visit_expression(super_class)?;
                 }
 
                 self.begin_scope();

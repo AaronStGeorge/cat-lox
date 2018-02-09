@@ -101,7 +101,7 @@ impl Eq for Expression {}
 pub enum Statement {
     Class {
         name: Token,
-        superclass: Option<Expression>,
+        super_class: Option<Expression>,
         methods: Vec<Statement>,
     },
     Block(Vec<Statement>),

@@ -80,10 +80,10 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
 
     fn visit_statement(&self, s: &Statement) -> String {
         match *s {
-            Statement::Class{ref name, ref methods, ref superclass} => format!(
+            Statement::Class{ref name, ref methods, ref super_class} => format!(
                 "(ClassDeclaration Statement \n\tname: {:?} \n\tsuperclass: {} \n\tmethods: [{}])",
                 name,
-                match superclass {
+                match super_class {
                     &Some(ref expr) => self.visit_expression(expr),
                     &None => String::from("None"),
                 },
