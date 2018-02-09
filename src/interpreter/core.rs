@@ -265,6 +265,7 @@ impl MutVisitor for Interpreter {
             &Statement::Class {
                 name: ref class_name,
                 ref methods,
+                ..
             } => match class_name {
                 &Token::Ident(ref name_string) => {
                     let mut methods_map = HashMap::new();
