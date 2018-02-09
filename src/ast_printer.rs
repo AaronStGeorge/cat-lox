@@ -80,9 +80,13 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
 
     fn visit_statement(&self, s: &Statement) -> String {
         match *s {
-            Statement::Class{ref name, ref methods, ..} => format!(
-                "(ClassDeclaration Statement \n\tname: {:?} \n\tmethods: [{}])",
+            Statement::Class{ref name, ref methods, ref superclass} => format!(
+                "(ClassDeclaration Statement \n\tname: {:?} \n\tsuperclass: {} \n\tmethods: [{}])",
                 name,
+                match superclass {
+                    &Some(ref expr) => self.visit_expression(expr),
+                    &None => String::from("None"),
+                },
                 methods.iter()
                     .map(|s| self.visit_statement(s))
                     .collect::<Vec<_>>()
