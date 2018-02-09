@@ -69,6 +69,23 @@ impl Interpreter {
         Ok(())
     }
 
+    fn call_callable(&mut self, callee: &Callable, arguments: &Vec<Expression>) -> Result<Types, String> {
+        if arguments.len() != callee.arity() {
+            return Err(String::from(format!(
+                "This wants {} arguments and you passed it {}, try again dipshit",
+                callee.arity(),
+                arguments.len()
+            )));
+        }
+
+        let mut interpreted_arguments: Vec<Types> = Vec::new();
+        for expr in arguments {
+            interpreted_arguments.push(self.visit_expression(expr)?);
+        }
+
+        Ok(callee.call(self, interpreted_arguments)?)
+    }
+
     pub fn resolve(&mut self, expr: &Expression, i: usize) {
         self.locals.insert(expr.clone(), i);
     }
@@ -145,27 +162,11 @@ impl MutVisitor for Interpreter {
                 ref callee,
                 ref arguments,
                 ..
-            } => {
-                let callee = match self.visit_expression(callee)? {
-                    Types::Callable(inner) => inner,
-                    _ => return Err(String::from("You can't call this shit!")),
-                };
-
-                if arguments.len() != callee.arity() {
-                    return Err(String::from(format!(
-                        "This wants {} arguments and you passed it {}, try again dipshit",
-                        callee.arity(),
-                        arguments.len()
-                    )));
-                }
-
-                let mut interpreted_arguments: Vec<Types> = Vec::new();
-                for expr in arguments {
-                    interpreted_arguments.push(self.visit_expression(expr)?);
-                }
-
-                Ok(callee.call(self, interpreted_arguments)?)
-            }
+            } => match self.visit_expression(callee)? {
+                Types::Callable(inner) => self.call_callable(&(**inner), arguments),
+                Types::Class(inner) => self.call_callable(&(*inner), arguments),
+                _ => return Err(String::from("You can't call this shit!")),
+            },
             &Expression::Get {
                 ref name,
                 ref object,
@@ -265,9 +266,21 @@ impl MutVisitor for Interpreter {
             &Statement::Class {
                 name: ref class_name,
                 ref methods,
-                ..
+                ref super_class,
             } => match class_name {
                 &Token::Ident(ref name_string) => {
+                    let super_class_data_option = match super_class {
+                        &Some(ref expr) => match self.visit_expression(expr)? {
+                            Types::Class(class) => Some(class.class_data.clone()),
+                            _ => {
+                                return Err(CatBoxReturn::Err(String::from(
+                                    "Superclass must be a class!",
+                                )))
+                            }
+                        },
+                        &None => None,
+                    };
+
                     let mut methods_map = HashMap::new();
                     for method_statement in methods {
                         match method_statement {
@@ -292,6 +305,7 @@ impl MutVisitor for Interpreter {
                     let class_data = ClassData {
                         name: name_string.clone(),
                         methods: methods_map,
+                        super_class: super_class_data_option,
                     };
 
                     let class = Class {
@@ -370,6 +384,7 @@ pub enum Types {
     ReturnString(String),
     Boolean(bool),
     Callable(Rc<Box<Callable>>),
+    Class(Rc<Class>),
     Instance(Instance),
     Nil,
 }
@@ -390,6 +405,7 @@ impl Display for Types {
         match self {
             &Types::Boolean(b) => write!(f, "{}", b),
             &Types::Callable(ref c) => write!(f, "{}", c),
+            &Types::Class(ref c) => write!(f, "{}", c),
             &Types::Instance(ref instance) => write!(f, "{}", instance),
             &Types::Nil => write!(f, "nil"),
             &Types::Number(n) => write!(f, "{}", n),
@@ -471,6 +487,7 @@ pub struct Class {
 struct ClassData {
     name: String,
     methods: HashMap<String, Function>,
+    super_class: Option<Rc<ClassData>>,
 }
 
 impl Callable for Class {
