@@ -222,7 +222,9 @@ impl MutVisitor for Interpreter {
                         return Ok(instance);
                     }
                 }
-                Err(String::from("Internal interpreter error: shit is fucked"))
+                Err(String::from(
+                    "Internal interpreter error: shit is fucked with this",
+                ))
             }
             &Expression::Unary {
                 ref operator,
@@ -252,7 +254,35 @@ impl MutVisitor for Interpreter {
                 }
                 _ => Err(String::from("Only instances have fields dumbass!")),
             },
-            &Expression::Super { .. } => unimplemented!(),
+            &Expression::Super { ref method, .. } => {
+                if let Some(distance) = self.locals.get(e) {
+                    if let Some(Types::Class(super_class)) =
+                        self.current_environment.get_at(*distance, &Token::Super)?
+                    {
+                        // "this" is always one level nearer than "super"'s environment.
+                        if let Some(Types::Instance(instance)) = self.current_environment
+                            .get_at(*distance + 1, &Token::This)?
+                        {
+                            match method {
+                                &Token::Ident(ref method) => {
+                                    match super_class.class_data.find_method(method, &instance) {
+                                        Some(thing) => {
+                                            return Ok(thing);
+                                        }
+                                        None => {
+                                            return Err(format!("Undefined property {}", method));
+                                        }
+                                    }
+                                }
+                                _ => unreachable!(),
+                            }
+                        }
+                    }
+                }
+                Err(String::from(
+                    "Internal interpreter error: shit is fucked with self",
+                ))
+            }
             &Expression::Variable { ref name, .. } => match self.locals.get(e) {
                 Some(distance) => match self.current_environment.get_at(*distance, name)? {
                     Some(t) => Ok(t),
@@ -274,9 +304,21 @@ impl MutVisitor for Interpreter {
                 ref super_class,
             } => match class_name {
                 &Token::Ident(ref name_string) => {
+                    let mut super_environment = Environment::new_node(&self.current_environment);
                     let super_class_data_option = match super_class {
                         &Some(ref expr) => match self.visit_expression(expr)? {
-                            Types::Class(class) => Some(class.class_data.clone()),
+                            Types::Class(class) => {
+                                mem::swap(&mut self.current_environment, &mut super_environment);
+
+                                self.current_environment.define(
+                                    &Token::Super,
+                                    Some(Types::Class(Rc::new(Class {
+                                        class_data: class.class_data.clone(),
+                                    }))),
+                                );
+
+                                Some(class.class_data.clone())
+                            }
                             _ => {
                                 return Err(CatBoxReturn::Err(String::from(
                                     "Superclass must be a class!",
@@ -305,6 +347,10 @@ impl MutVisitor for Interpreter {
                             }
                             _ => unreachable!(),
                         }
+                    }
+
+                    if super_class_data_option.is_some() {
+                        mem::swap(&mut self.current_environment, &mut super_environment);
                     }
 
                     let class_data = ClassData {

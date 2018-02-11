@@ -83,6 +83,12 @@ impl Environment {
                     .borrow_mut()
                     .define("this", value)
             }
+            &Token::Super => {
+                let len = self.cactus_stack.len();
+                self.cactus_stack[len - 1]
+                    .borrow_mut()
+                    .define("super", value)
+            }
             _ => unreachable!(),
         }
     }
@@ -118,6 +124,15 @@ impl Environment {
                 }
                 Err(format!(
                     "Internal interpreter error: can't get \"this\" at the {} level of the environment",
+                     distance
+                ))
+            }
+            &Token::Super => {
+                if let Some(value) = self.cactus_stack[distance].borrow().get("super") {
+                    return Ok(value);
+                }
+                Err(format!(
+                    "Internal interpreter error: can't get \"super\" at the {} level of the environment",
                      distance
                 ))
             }
