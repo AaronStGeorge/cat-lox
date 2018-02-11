@@ -15,6 +15,7 @@ enum FunctionType {
 enum ClassType {
     None,
     Class,
+    SubClass,
 }
 
 pub fn resolve(stmts: &mut [Statement], interpreter: &mut Interpreter) -> Result<(), String> {
@@ -184,6 +185,14 @@ impl<'a> MutVisitor for Resolver<'a> {
                 Ok(())
             }
             &Expression::Super { .. } => {
+                if self.class_type == ClassType::None {
+                    return Err(String::from("Cannot use 'super' outside of a class."));
+                } else if self.class_type != ClassType::SubClass {
+                    return Err(String::from(
+                        "Cannot use 'super' in a class with no superclass.",
+                    ));
+                }
+
                 self.resolve_local("super", e);
                 Ok(())
             }
@@ -231,6 +240,7 @@ impl<'a> MutVisitor for Resolver<'a> {
 
                 if let &Some(ref super_class) = super_class {
                     self.begin_scope();
+                    self.class_type = ClassType::SubClass;
                     let len = self.scopes.len() - 1;
                     self.scopes[len].insert(String::from("super"), true);
                     self.visit_expression(super_class)?;
