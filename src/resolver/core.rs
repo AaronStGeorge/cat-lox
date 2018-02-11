@@ -183,7 +183,10 @@ impl<'a> MutVisitor for Resolver<'a> {
                 self.visit_expression(object)?;
                 Ok(())
             }
-            &Expression::Super { .. } => unimplemented!(),
+            &Expression::Super { .. } => {
+                self.resolve_local("super", e);
+                Ok(())
+            }
             &Expression::This { .. } => {
                 if self.class_type != ClassType::Class {
                     return Err(String::from("You can't use this outside of a class!"));
@@ -227,6 +230,9 @@ impl<'a> MutVisitor for Resolver<'a> {
                 self.class_type = ClassType::Class;
 
                 if let &Some(ref super_class) = super_class {
+                    self.begin_scope();
+                    let len = self.scopes.len() - 1;
+                    self.scopes[len].insert(String::from("super"), true);
                     self.visit_expression(super_class)?;
                 }
 
@@ -249,6 +255,10 @@ impl<'a> MutVisitor for Resolver<'a> {
                     self.resolve_fn(method, function_type)?;
                 }
                 self.end_scope();
+
+                if let &Some(_) = super_class {
+                    self.end_scope();
+                }
 
                 self.class_type = enclosing_class;
                 Ok(())
