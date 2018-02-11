@@ -495,6 +495,27 @@ struct ClassData {
     super_class: Option<Rc<ClassData>>,
 }
 
+impl ClassData {
+    fn find_method(&self, name: &str, instance: &Instance) -> Option<Types> {
+        match self.methods.get(name) {
+            Some(method) => {
+                let new_method = method.bind(Types::Instance(instance.clone()));
+                Some(Types::Callable(Rc::new(Box::new(new_method))))
+            }
+            None => match self.super_class {
+                Some(ref super_class) => match super_class.methods.get(name) {
+                    Some(method) => {
+                        let new_method = method.bind(Types::Instance(instance.clone()));
+                        Some(Types::Callable(Rc::new(Box::new(new_method))))
+                    }
+                    None => None,
+                },
+                None => None,
+            },
+        }
+    }
+}
+
 impl Callable for Class {
     fn arity(&self) -> usize {
         if let Some(initializer) = self.class_data.methods.get("init") {
@@ -557,22 +578,7 @@ impl Instance {
     fn get(&self, name: &str) -> Option<Types> {
         match self.instance_data.borrow().get(name) {
             some @ Some(_) => some,
-            None => match self.class_data.methods.get(name) {
-                Some(method) => {
-                    let new_method = method.bind(Types::Instance(self.clone()));
-                    Some(Types::Callable(Rc::new(Box::new(new_method))))
-                }
-                None => match self.class_data.super_class {
-                    Some(ref super_class) => match super_class.methods.get(name) {
-                        Some(method) => {
-                            let new_method = method.bind(Types::Instance(self.clone()));
-                            Some(Types::Callable(Rc::new(Box::new(new_method))))
-                        }
-                        None => None,
-                    },
-                    None => None,
-                },
-            },
+            None => self.class_data.find_method(name, self),
         }
     }
 
