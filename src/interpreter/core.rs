@@ -252,6 +252,7 @@ impl MutVisitor for Interpreter {
                 }
                 _ => Err(String::from("Only instances have fields dumbass!")),
             },
+            &Expression::Super { .. } => unimplemented!(),
             &Expression::Variable { ref name, .. } => match self.locals.get(e) {
                 Some(distance) => match self.current_environment.get_at(*distance, name)? {
                     Some(t) => Ok(t),

@@ -183,6 +183,7 @@ impl<'a> MutVisitor for Resolver<'a> {
                 self.visit_expression(object)?;
                 Ok(())
             }
+            &Expression::Super { .. } => unimplemented!(),
             &Expression::This { .. } => {
                 if self.class_type != ClassType::Class {
                     return Err(String::from("You can't use this outside of a class!"));

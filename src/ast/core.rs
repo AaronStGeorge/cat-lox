@@ -48,6 +48,10 @@ pub enum Expression {
         object: Box<Expression>,
         value: Box<Expression>,
     },
+    Super {
+        id: Uuid,
+        method: Token,
+    },
     This {
         id: Uuid,
     },
@@ -73,6 +77,7 @@ impl Expression {
             &Expression::Literal { ref id, .. } => id,
             &Expression::Logical { ref id, .. } => id,
             &Expression::Set { ref id, .. } => id,
+            &Expression::Super { ref id, .. } => id,
             &Expression::This { ref id, .. } => id,
             &Expression::Unary { ref id, .. } => id,
             &Expression::Variable { ref id, .. } => id,

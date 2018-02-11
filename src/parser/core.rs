@@ -681,6 +681,13 @@ impl<'a> Parser<'a> {
                     id: Uuid::new_v4(),
                     name: t.clone(),
                 }),
+                Token::Super => match (self.advance(), self.advance()) {
+                    (Some(&Token::Dot), Some(method @ &Token::Ident(_))) => Ok(Expression::Super {
+                        id: Uuid::new_v4(),
+                        method: method.clone(),
+                    }),
+                    _ => Err("There should be a a superclass method name"),
+                },
                 _ => Err("What the fuck is this shit!"),
             }
         } else {
