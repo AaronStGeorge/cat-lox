@@ -1,4 +1,4 @@
-extern crate catbox;
+extern crate catlox;
 extern crate liner;
 
 use std::io;
@@ -8,11 +8,11 @@ use std::io::prelude::*;
 
 use liner::Context;
 
-use catbox::ast_printer::*;
-use catbox::lexer::*;
-use catbox::parser::*;
-use catbox::interpreter::*;
-use catbox::resolver::*;
+use catlox::ast_printer::*;
+use catlox::lexer::*;
+use catlox::parser::*;
+use catlox::interpreter::*;
+use catlox::resolver::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -45,25 +45,17 @@ fn main() {
 pub fn repl(is_debug: bool) -> io::Result<()> {
     println!(
         r#"
-  ___    __   ____  ____  _____  _  _
- / __)  /__\ (_  _)(  _ \(  _  )( \/ )
-( (__  /(__)\  )(   ) _ < )(_)(  )  (
- \___)(__)(__)(__) (____/(_____)(_/\_)
+                   __    _____  _  _
+                  (  )  (  _  )( \/ )
+  /\-/\            )(__  )(_)(  )  (
+ /a a  \          (____)(_____)(_/\_)  _
+=\ Y  =/-~~~~~~-,_____________________/ )
+  '^--'          ______________________/
+    \           /
+    ||  |---'\  \
+   (_(__|   ((__|
 
-                             ,
-      ,-.       _,---._ __  / \
-     /  )    .-'       `./ /   \
-    (  (   ,'            `/    /|
-     \  `-"             \'\   / |
-      `.              ,  \ \ /  |
-       /`.          ,'-`----Y   |
-      (            ;        |   '
-      |  ,-.    ,-'         |  /
-      |  | (   |            | /
-      )  |  \  `.___________|/
-      `--'   `--'
-
-catbox is free software with ABSOLUTELY NO WARRANTY.
+cat-lox is free software with ABSOLUTELY NO WARRANTY.
 "#
     );
 
@@ -94,7 +86,6 @@ catbox is free software with ABSOLUTELY NO WARRANTY.
 
     Ok(())
 }
-
 
 fn run(res: &str, is_debug: bool, interpreter: &mut Interpreter) {
     let tokens: Vec<Token> = Lexer::new(res).collect();
