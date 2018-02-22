@@ -12,7 +12,7 @@
 
 A tree-walk interpreter for a dialect of the
 [Lox](http://craftinginterpreters.com/the-lox-language.html) programming
-language, as described in part 2 of Bob Nystrom's excellent book [Crafting
+language, as described in part two of Bob Nystrom's excellent book [Crafting
 Interpreters](https://http://craftinginterpreters.com/). Implemented in
 [rust](https://www.rust-lang.org/en-US/). The code is somewhat rough, this is
 my first rust project. It's also severely under-documented, but then again
