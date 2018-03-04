@@ -55,7 +55,7 @@ pub fn repl(is_debug: bool) -> io::Result<()> {
     ||  |---'\  \
    (_(__|   ((__|
 
-cat-lox is free software with ABSOLUTELY NO WARRANTY.
+catlox is free software with ABSOLUTELY NO WARRANTY.
 "#
     );
 
