@@ -35,7 +35,7 @@ fn main() {
         f.read_to_string(&mut contents)
             .expect("something went wrong reading the file");
 
-        let mut interpreter = Interpreter::new();
+        let mut interpreter = Interpreter::new(Box::new(|s| println!("{}", s)));
         run(&contents, is_debug, &mut interpreter);
     } else {
         repl(is_debug).unwrap();
@@ -59,7 +59,7 @@ catlox is free software with ABSOLUTELY NO WARRANTY.
 "#
     );
 
-    let mut interpreter = Interpreter::new();
+    let mut interpreter = Interpreter::new(Box::new(|s| println!("{}", s)));
     let mut con = Context::new();
 
     loop {

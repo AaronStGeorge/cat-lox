@@ -15,8 +15,8 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    pub fn new() -> Interpreter {
-        let global_environment = Environment::global();
+    pub fn new(output: Box<Fn(&str)>) -> Interpreter {
+        let global_environment = Environment::global(output);
         Interpreter {
             current_environment: global_environment.clone(),
             global_environment: global_environment,

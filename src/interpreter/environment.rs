@@ -1,5 +1,6 @@
 use super::core::Types;
 use super::clock::Clock;
+use super::print::Print;
 use lexer::Token;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -11,9 +12,9 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn global() -> Environment {
+    pub fn global(output: Box<Fn(&str)>) -> Environment {
         Environment {
-            cactus_stack: vec![Rc::new(RefCell::new(EnvironmentNode::global()))],
+            cactus_stack: vec![Rc::new(RefCell::new(EnvironmentNode::global(output)))],
         }
     }
 
@@ -154,14 +155,17 @@ impl EnvironmentNode {
     }
 
     // The global environment, all native functions should be defined here.
-    fn global() -> EnvironmentNode {
+    fn global(output: Box<Fn(&str)>) -> EnvironmentNode {
         let mut global = EnvironmentNode {
             values: HashMap::new(),
         };
 
         let clock = Types::Callable(Rc::new(Box::new(Clock {})));
 
+        let print = Types::Callable(Rc::new(Box::new(Print::new(output))));
+
         global.define("clock", Some(clock));
+        global.define("print", Some(print));
 
         global
     }
