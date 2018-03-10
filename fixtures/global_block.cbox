@@ -1,9 +1,9 @@
-print "You should see global twice";
+print("You should see global twice");
 
 let a = "global";
 {
   fn showA() {
-    print a;
+    print(a);
   }
 
   showA();

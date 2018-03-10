@@ -21,16 +21,16 @@ let n = 10;
 
 let tick = clock();
 for (let i = 0; i < n; i = i + 1) {
-  print fib(i);
+  print(fib(i));
 }
 let tock = clock();
 
-print "non recursive fibonacci completed in " + (tock - tick) + " (s)";
+print("non recursive fibonacci completed in " + (tock - tick) + " (s)");
 
 tick = clock();
 for (let i = 0; i < n; i = i + 1) {
-  print r_fib(i);
+  print(r_fib(i));
 }
 tock = clock();
 
-print "recursive fibonacci completed in " + (tock - tick) + " (s)";
+print("recursive fibonacci completed in " + (tock - tick) + " (s)");

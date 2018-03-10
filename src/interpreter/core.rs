@@ -402,11 +402,6 @@ impl MutVisitor for Interpreter {
 
                 Ok(())
             }
-            &Statement::Print(ref expr) => {
-                let result = self.visit_expression(expr)?;
-                println!("{}", result);
-                Ok(())
-            }
             &Statement::Return(ref expr_option) => Err(CatBoxReturn::Return(match expr_option {
                 &Some(ref expr) => self.visit_expression(expr)?,
                 &None => Types::Nil,

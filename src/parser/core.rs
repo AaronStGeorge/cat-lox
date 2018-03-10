@@ -77,7 +77,7 @@ impl<'a> Parser<'a> {
             }
 
             match next_token {
-                &Token::Function | &Token::Print | &Token::If | &Token::Return | &Token::Let => {
+                &Token::Function | &Token::If | &Token::Return | &Token::Let => {
                     return
                 }
                 _ => (),
@@ -247,10 +247,6 @@ impl<'a> Parser<'a> {
                 self.advance();
                 self.block_statement()
             }
-            Some(&Token::Print) => {
-                self.advance();
-                self.print_statement()
-            }
             Some(&Token::Return) => {
                 self.advance();
                 self.return_statement()
@@ -367,18 +363,6 @@ impl<'a> Parser<'a> {
 
     fn block_statement(&self) -> Result<Statement, &'static str> {
         Ok(Statement::Block(self.block()?))
-    }
-
-    fn print_statement(&self) -> Result<Statement, &'static str> {
-        let expr = self.expression()?;
-
-        match self.peek() {
-            Some(&Token::Semicolon) => {
-                self.advance();
-                Ok(Statement::Print(expr))
-            }
-            _ => Err("There should be a fucking semicolon after this print statement!"),
-        }
     }
 
     fn return_statement(&self) -> Result<Statement, &'static str> {

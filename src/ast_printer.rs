@@ -125,9 +125,6 @@ impl<'a> Visitor for ASTStringVisitor<'a> {
                     &None => String::from(""),
                 }
             ),
-            Statement::Print(ref expr) => {
-                format!("(Print Statement {})", self.visit_expression(expr))
-            }
             Statement::Return(ref expr_option) => format!("(Return Statement {})",
                 match expr_option {
                     &Some(ref expr) => self.visit_expression(expr),

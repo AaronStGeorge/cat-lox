@@ -297,10 +297,6 @@ impl<'a> MutVisitor for Resolver<'a> {
                 }
                 Ok(())
             }
-            &Statement::Print(ref expr) => {
-                self.visit_expression(expr)?;
-                Ok(())
-            }
             &Statement::Return(ref expr_option) => {
                 if self.function_type == FunctionType::None {
                     return Err(String::from("Cannot return from top level code"));

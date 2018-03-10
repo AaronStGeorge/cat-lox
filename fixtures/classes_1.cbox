@@ -8,5 +8,5 @@ let instance = DevonshireCream();
 
 instance.name = "jane";
 
-print instance.name;
-print instance.serveOn();
+print(instance.name);
+print(instance.serveOn());

@@ -1,7 +1,7 @@
 class Thing {
   getCallback() {
     fn localFunction() {
-      print this;
+      print(this);
     }
 
     return localFunction;

@@ -2,7 +2,7 @@ fn makeCounter() {
   let i = 0;
   fn count() {
     i = i + 1;
-    print i;
+    print(i);
   }
 
   return count;

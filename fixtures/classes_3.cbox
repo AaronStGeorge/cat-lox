@@ -1,6 +1,6 @@
 class Egotist {
   speak() {
-    print this;
+    print(this);
   }
 }
 
