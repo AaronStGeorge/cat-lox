@@ -112,7 +112,10 @@ fn run(res: &str, is_debug: bool, interpreter: &mut Interpreter) {
 
             // Resolve variable bindings
             match resolve(&statements, interpreter) {
-                Ok(()) => interpreter.interpret(&statements),
+                Ok(()) => match interpreter.interpret(&statements) {
+                    Ok(_) => (),
+                    Err(err) => println!("Interpreter Error: {}", err),
+                },
                 Err(err) => println!("Resolver Error: {}", err),
             }
         }

@@ -82,9 +82,7 @@ impl<'a> Parser<'a> {
             }
 
             match next_token {
-                &Token::Function | &Token::If | &Token::Return | &Token::Let => {
-                    return
-                }
+                &Token::Function | &Token::If | &Token::Return | &Token::Let => return,
                 _ => (),
             }
 

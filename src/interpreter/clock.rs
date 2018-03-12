@@ -1,6 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use super::core::{Callable, Types, Interpreter};
+use super::core::{Callable, Interpreter, Types};
 
 #[derive(Debug)]
 pub struct Clock {}
@@ -10,7 +10,7 @@ impl Callable for Clock {
         0
     }
 
-    fn call(&self, _: &mut Interpreter, __: Vec<Types>) -> Result<Types, String>  {
+    fn call(&self, _: &mut Interpreter, __: Vec<Types>) -> Result<Types, String> {
         let time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap()
@@ -18,7 +18,6 @@ impl Callable for Clock {
         Ok(Types::Number(time as f64))
     }
 }
-
 
 impl Display for Clock {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {

@@ -24,18 +24,21 @@ impl Interpreter {
         }
     }
 
-    pub fn interpret(&mut self, program: &[Statement]) {
+    pub fn interpret(&mut self, program: &[Statement]) -> Result<(), String> {
         for s in program {
             match self.visit_statement(s) {
-                Ok(()) => (),
+                Ok(()) => return Ok(()),
                 Err(err) => match err {
-                    CatBoxReturn::Err(s) => println!("Run Time Error: {}", s),
+                    CatBoxReturn::Err(error) => return Err(error),
                     CatBoxReturn::Return(_) => {
-                        println!("Return can only be used in function scope dummy")
+                        return Err(String::from(
+                            "Return can only be used in function scope dummy",
+                        ))
                     }
                 },
             }
         }
+        Ok(())
     }
 
     fn execute_block(
