@@ -11,7 +11,7 @@ use super::environment::Environment;
 pub struct Interpreter {
     current_environment: Environment,
     global_environment: Environment,
-    locals: HashMap<Expression, usize>,
+    locals: HashMap<usize, usize>,
 }
 
 impl Interpreter {
@@ -91,7 +91,7 @@ impl Interpreter {
     }
 
     pub fn resolve(&mut self, expr: &Expression, i: usize) {
-        self.locals.insert(expr.clone(), i);
+        self.locals.insert(expr.get_id(), i);
     }
 }
 
@@ -105,7 +105,7 @@ impl MutVisitor for Interpreter {
                 ref name, ref expr, ..
             } => {
                 let value = self.visit_expression(expr)?;
-                match self.locals.get(e) {
+                match self.locals.get(&e.get_id()) {
                     Some(distance) => {
                         self.current_environment
                             .assign_at(*distance, &name, value.clone())?
@@ -215,7 +215,7 @@ impl MutVisitor for Interpreter {
                 self.visit_expression(r_expr)
             }
             &Expression::This { .. } => {
-                if let Some(distance) = self.locals.get(e) {
+                if let Some(distance) = self.locals.get(&e.get_id()) {
                     if let Some(instance) =
                         self.current_environment.get_at(*distance, &Token::This)?
                     {
@@ -255,7 +255,7 @@ impl MutVisitor for Interpreter {
                 _ => Err(String::from("Only instances have fields dumbass!")),
             },
             &Expression::Super { ref method, .. } => {
-                if let Some(distance) = self.locals.get(e) {
+                if let Some(distance) = self.locals.get(&e.get_id()) {
                     if let Some(Types::Class(super_class)) =
                         self.current_environment.get_at(*distance, &Token::Super)?
                     {
@@ -283,7 +283,7 @@ impl MutVisitor for Interpreter {
                     "Internal interpreter error: shit is fucked with self",
                 ))
             }
-            &Expression::Variable { ref name, .. } => match self.locals.get(e) {
+            &Expression::Variable { ref name, .. } => match self.locals.get(&e.get_id()) {
                 Some(distance) => match self.current_environment.get_at(*distance, name)? {
                     Some(t) => Ok(t),
                     None => Ok(Types::Nil),

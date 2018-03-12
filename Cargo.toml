@@ -14,4 +14,3 @@ cli = ["liner"]
 
 [dependencies]
 liner = { version = "0.4.2", optional = true }
-uuid = { version = "0.4", features = ["serde", "v4"] }

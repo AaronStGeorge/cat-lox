@@ -2,12 +2,10 @@ use ast::*;
 use lexer::*;
 use std::cell::Cell;
 
-extern crate uuid;
-use self::uuid::Uuid;
-
 pub struct Parser<'a> {
     tokens: &'a [Token],
     index: Cell<usize>,
+    id: Cell<usize>,
 }
 
 impl<'a> Parser<'a> {
@@ -15,6 +13,7 @@ impl<'a> Parser<'a> {
         return Parser {
             tokens: input,
             index: Cell::new(0),
+            id: Cell::new(0),
         };
     }
 
@@ -36,6 +35,12 @@ impl<'a> Parser<'a> {
         } else {
             Ok(statements)
         }
+    }
+
+    fn new_id(&self) -> usize {
+        let new_id = self.id.get();
+        self.id.set(new_id + 1);
+        new_id
     }
 
     fn advance(&self) -> Option<&Token> {
@@ -136,7 +141,7 @@ impl<'a> Parser<'a> {
                 self.advance();
                 match self.advance() {
                     Some(super_class_name @ &Token::Ident(_)) => Some(Expression::Variable {
-                        id: Uuid::new_v4(),
+                        id: self.new_id(),
                         name: super_class_name.clone(),
                     }),
                     _ => return Err("There should be a superclass name here! You fucking asshole!"),
@@ -318,7 +323,7 @@ impl<'a> Parser<'a> {
             Some(condition_inner) => Statement::While(condition_inner, Box::new(body)),
             None => Statement::While(
                 Expression::Literal {
-                    id: Uuid::new_v4(),
+                    id: self.new_id(),
                     token: Token::True,
                 },
                 Box::new(body),
@@ -437,14 +442,14 @@ impl<'a> Parser<'a> {
             match expr {
                 Expression::Variable { name, .. } => {
                     return Ok(Expression::Assignment {
-                        id: Uuid::new_v4(),
+                        id: self.new_id(),
                         name: name,
                         expr: Box::new(value),
                     })
                 }
                 Expression::Get { name, object, .. } => {
                     return Ok(Expression::Set {
-                        id: Uuid::new_v4(),
+                        id: self.new_id(),
                         name: name,
                         object: object,
                         value: Box::new(value),
@@ -466,7 +471,7 @@ impl<'a> Parser<'a> {
         } {
             let right = self.and()?;
             expr = Expression::Logical {
-                id: Uuid::new_v4(),
+                id: self.new_id(),
                 l_expr: Box::new(expr),
                 operator: t.clone(),
                 r_expr: Box::new(right),
@@ -485,7 +490,7 @@ impl<'a> Parser<'a> {
         } {
             let right = self.equality()?;
             expr = Expression::Logical {
-                id: Uuid::new_v4(),
+                id: self.new_id(),
                 l_expr: Box::new(expr),
                 operator: t.clone(),
                 r_expr: Box::new(right),
@@ -504,7 +509,7 @@ impl<'a> Parser<'a> {
         } {
             let right = self.comparison()?;
             expr = Expression::Binary {
-                id: Uuid::new_v4(),
+                id: self.new_id(),
                 l_expr: Box::new(expr),
                 operator: t.clone(),
                 r_expr: Box::new(right),
@@ -527,7 +532,7 @@ impl<'a> Parser<'a> {
         } {
             let right = self.addition()?;
             expr = Expression::Binary {
-                id: Uuid::new_v4(),
+                id: self.new_id(),
                 l_expr: Box::new(expr),
                 operator: t.clone(),
                 r_expr: Box::new(right),
@@ -546,7 +551,7 @@ impl<'a> Parser<'a> {
         } {
             let right = self.multiplication()?;
             expr = Expression::Binary {
-                id: Uuid::new_v4(),
+                id: self.new_id(),
                 l_expr: Box::new(expr),
                 operator: t.clone(),
                 r_expr: Box::new(right),
@@ -565,7 +570,7 @@ impl<'a> Parser<'a> {
         } {
             let right = self.unary()?;
             expr = Expression::Binary {
-                id: Uuid::new_v4(),
+                id: self.new_id(),
                 l_expr: Box::new(expr),
                 operator: t.clone(),
                 r_expr: Box::new(right),
@@ -581,7 +586,7 @@ impl<'a> Parser<'a> {
                 self.advance();
                 let right = self.unary()?;
                 return Ok(Expression::Unary {
-                    id: Uuid::new_v4(),
+                    id: self.new_id(),
                     operator: t.clone(),
                     expr: Box::new(right),
                 });
@@ -614,7 +619,7 @@ impl<'a> Parser<'a> {
                     match self.advance() {
                         Some(&Token::RightParentheses) => {
                             expr = Expression::Call {
-                                id: Uuid::new_v4(),
+                                id: self.new_id(),
                                 callee: Box::new(expr),
                                 arguments: args,
                             }
@@ -625,7 +630,7 @@ impl<'a> Parser<'a> {
                 Some(&Token::Dot) => match self.advance() {
                     Some(name @ &Token::Ident(_)) => {
                         expr = Expression::Get {
-                            id: Uuid::new_v4(),
+                            id: self.new_id(),
                             object: Box::new(expr),
                             name: name.clone(),
                         }
@@ -646,28 +651,28 @@ impl<'a> Parser<'a> {
                     let expr = self.expression()?;
                     match self.advance() {
                         Some(&Token::RightParentheses) => Ok(Expression::Grouping {
-                            id: Uuid::new_v4(),
+                            id: self.new_id(),
                             expr: Box::new(expr),
                         }),
                         _ => Err("There should be a fucking right parentheses here!"),
                     }
                 }
-                Token::This => Ok(Expression::This { id: Uuid::new_v4() }),
+                Token::This => Ok(Expression::This { id: self.new_id() }),
                 Token::Number(_)
                 | Token::Nil
                 | Token::True
                 | Token::LoxString(_)
                 | Token::False => Ok(Expression::Literal {
-                    id: Uuid::new_v4(),
+                    id: self.new_id(),
                     token: t.clone(),
                 }),
                 Token::Ident(_) => Ok(Expression::Variable {
-                    id: Uuid::new_v4(),
+                    id: self.new_id(),
                     name: t.clone(),
                 }),
                 Token::Super => match (self.advance(), self.advance()) {
                     (Some(&Token::Dot), Some(method @ &Token::Ident(_))) => Ok(Expression::Super {
-                        id: Uuid::new_v4(),
+                        id: self.new_id(),
                         method: method.clone(),
                     }),
                     _ => Err("There should be a a superclass method name"),

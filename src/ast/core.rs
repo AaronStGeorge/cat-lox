@@ -1,106 +1,84 @@
-extern crate uuid;
-
 use lexer::Token;
-use std::hash::{Hash, Hasher};
-
-use self::uuid::Uuid;
 
 #[derive(Clone, Debug)]
 pub enum Expression {
     Assignment {
-        id: Uuid,
+        id: usize,
         name: Token,
         expr: Box<Expression>,
     },
     Binary {
-        id: Uuid,
+        id: usize,
         l_expr: Box<Expression>,
         operator: Token,
         r_expr: Box<Expression>,
     },
     Call {
-        id: Uuid,
+        id: usize,
         callee: Box<Expression>,
         arguments: Vec<Expression>,
     },
     Get {
-        id: Uuid,
+        id: usize,
         object: Box<Expression>,
         name: Token,
     },
     Grouping {
-        id: Uuid,
+        id: usize,
         expr: Box<Expression>,
     },
     Literal {
-        id: Uuid,
+        id: usize,
         token: Token,
     },
     Logical {
-        id: Uuid,
+        id: usize,
         l_expr: Box<Expression>,
         operator: Token,
         r_expr: Box<Expression>,
     },
     Set {
-        id: Uuid,
+        id: usize,
         name: Token,
         object: Box<Expression>,
         value: Box<Expression>,
     },
     Super {
-        id: Uuid,
+        id: usize,
         method: Token,
     },
     This {
-        id: Uuid,
+        id: usize,
     },
     Unary {
-        id: Uuid,
+        id: usize,
         operator: Token,
         expr: Box<Expression>,
     },
     Variable {
-        id: Uuid,
+        id: usize,
         name: Token,
     },
 }
 
 impl Expression {
-    fn get_id(&self) -> &Uuid {
+    pub fn get_id(&self) -> usize {
         match self {
-            &Expression::Assignment { ref id, .. } => id,
-            &Expression::Binary { ref id, .. } => id,
-            &Expression::Call { ref id, .. } => id,
-            &Expression::Get { ref id, .. } => id,
-            &Expression::Grouping { ref id, .. } => id,
-            &Expression::Literal { ref id, .. } => id,
-            &Expression::Logical { ref id, .. } => id,
-            &Expression::Set { ref id, .. } => id,
-            &Expression::Super { ref id, .. } => id,
-            &Expression::This { ref id, .. } => id,
-            &Expression::Unary { ref id, .. } => id,
-            &Expression::Variable { ref id, .. } => id,
+            &Expression::Assignment { id, .. } => id,
+            &Expression::Binary { id, .. } => id,
+            &Expression::Call { id, .. } => id,
+            &Expression::Get { id, .. } => id,
+            &Expression::Grouping { id, .. } => id,
+            &Expression::Literal { id, .. } => id,
+            &Expression::Logical { id, .. } => id,
+            &Expression::Set { id, .. } => id,
+            &Expression::Super { id, .. } => id,
+            &Expression::This { id, .. } => id,
+            &Expression::Unary { id, .. } => id,
+            &Expression::Variable { id, .. } => id,
         }
     }
 }
-
-impl Hash for Expression {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        let id = self.get_id();
-        id.hash(state)
-    }
-}
-
-impl PartialEq for Expression {
-    fn eq(&self, other: &Expression) -> bool {
-        let self_id = self.get_id();
-        let other_id = other.get_id();
-        self_id == other_id
-    }
-}
-
-impl Eq for Expression {}
 
 #[derive(Clone, Debug)]
 pub enum Statement {
