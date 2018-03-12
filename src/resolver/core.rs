@@ -18,7 +18,7 @@ enum ClassType {
     SubClass,
 }
 
-pub fn resolve(stmts: &mut [Statement], interpreter: &mut Interpreter) -> Result<(), String> {
+pub fn resolve(stmts: &[Statement], interpreter: &mut Interpreter) -> Result<(), String> {
     let mut resolver = Resolver {
         interpreter: interpreter,
         scopes: Vec::new(),
