@@ -20,4 +20,4 @@ one can always read the [book](https://http://craftinginterpreters.com/) 😉.
 
 This is not and was never intended to be an industrial strength language
 implementation, it's a hobby project implemented for fun and learning. Just
-in case it's not obvious don't use this for anything you want to work well.
+in case it's not obvious—don't use this for anything you want to work well.
