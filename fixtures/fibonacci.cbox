@@ -2,12 +2,12 @@ fn fib(n) {
   let i = 0;
   let j = 1;
   
-  for (let c = 0; c < n + 1; c = c + 1) {
+  for (let c = 0; c < n; c = c + 1) {
     let temp = i + j;
     i = j;
     j = temp;
   }
-  return j;
+  return i;
 }
 
 fn r_fib(n) {
@@ -17,7 +17,7 @@ fn r_fib(n) {
 
 // ============
 
-let n = 10;
+let n = 13;
 
 let tick = clock();
 for (let i = 0; i < n; i = i + 1) {
