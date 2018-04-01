@@ -16,25 +16,18 @@ use catlox::resolver::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let is_debug = args.len() >= 2 && args[1] == String::from("debug");
+    let is_debug = args.contains(&String::from("debug"));
+    let files : Vec<&String> = args.iter().filter(|s| s.ends_with(".cbox")).collect();
 
-    if let Some(filename) = match is_debug {
-        true => if args.len() == 3 && args[2].ends_with(".cbox") {
-            Some(args[2].clone())
-        } else {
-            None
-        },
-        false => if args.len() == 2 && args[1].ends_with(".cbox") {
-            Some(args[1].clone())
-        } else {
-            None
-        },
-    } {
-        let mut f = File::open(filename).expect("file not found");
+    if files.len() > 2 {
+        unreachable!("cat-lox can only run one file at a time.")
+    }
+
+    if files.len() == 1 {
+        let mut f = File::open(files[0]).expect("file not found");
         let mut contents = String::new();
         f.read_to_string(&mut contents)
             .expect("something went wrong reading the file");
-
         let mut interpreter = Interpreter::new(Box::new(|s| println!("{}", s)));
         run(&contents, is_debug, &mut interpreter);
     } else {
