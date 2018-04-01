@@ -30,7 +30,7 @@ cargo run --features="cli"
 ```
 
 ### Repl In Debug Mode
-For debugging the language implementation. Example :
+For debugging the language implementation. Example:
 ```
 > print(1+1);
 Tokens ----
