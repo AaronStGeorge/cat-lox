@@ -9,15 +9,15 @@ pub struct Parser<'a> {
 }
 
 impl<'a> Parser<'a> {
-    pub fn new(input: &'a [Token]) -> Parser {
+    pub fn new(input: &'a [Token], parse_seed: usize) -> Parser {
         return Parser {
             tokens: input,
             index: Cell::new(0),
-            id: Cell::new(0),
+            id: Cell::new(parse_seed),
         };
     }
 
-    pub fn parse(&mut self) -> Result<Vec<Statement>, String> {
+    pub fn parse(&mut self) -> Result<(usize, Vec<Statement>), String> {
         let mut statements: Vec<Statement> = vec![];
         let mut errs: Vec<&'static str> = vec![];
         while let Some(_) = self.peek() {
@@ -33,7 +33,7 @@ impl<'a> Parser<'a> {
         if !errs.is_empty() {
             Err(errs.join("\n"))
         } else {
-            Ok(statements)
+            Ok((self.id.get(), statements))
         }
     }
 

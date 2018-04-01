@@ -29,7 +29,7 @@ fn main() {
         f.read_to_string(&mut contents)
             .expect("something went wrong reading the file");
         let mut interpreter = Interpreter::new(Box::new(|s| println!("{}", s)));
-        run(&contents, is_debug, &mut interpreter);
+        run(&contents, is_debug, 0, &mut interpreter);
     } else {
         repl(is_debug).unwrap();
     }
@@ -54,13 +54,16 @@ catlox is free software with ABSOLUTELY NO WARRANTY.
 
     let mut interpreter = Interpreter::new(Box::new(|s| println!("{}", s)));
     let mut con = Context::new();
+    let mut parse_seed = 0;
 
     loop {
         let res = con.read_line("> ", &mut |_| {});
 
         match res {
             Ok(res) => {
-                run(&res, is_debug, &mut interpreter);
+                if let Some(new_parse_seed) = run(&res, is_debug, parse_seed, &mut interpreter) {
+                    parse_seed = new_parse_seed;
+                }
 
                 con.history.push(res.into())?;
             }
@@ -80,7 +83,7 @@ catlox is free software with ABSOLUTELY NO WARRANTY.
     Ok(())
 }
 
-fn run(res: &str, is_debug: bool, interpreter: &mut Interpreter) {
+fn run(res: &str, is_debug: bool, parse_seed: usize, interpreter: &mut Interpreter) -> Option<usize> {
     let tokens: Vec<Token> = Lexer::new(res).collect();
 
     if is_debug {
@@ -90,8 +93,8 @@ fn run(res: &str, is_debug: bool, interpreter: &mut Interpreter) {
         }
     }
 
-    match Parser::new(&tokens).parse() {
-        Ok(statements) => {
+    match Parser::new(&tokens, parse_seed).parse() {
+        Ok((new_parse_seed, statements)) => {
             if is_debug {
                 println!("AST ----");
                 println!(
@@ -111,7 +114,12 @@ fn run(res: &str, is_debug: bool, interpreter: &mut Interpreter) {
                 },
                 Err(err) => println!("Resolver Error: {}", err),
             }
+
+            Some(new_parse_seed)
         }
-        Err(err) => println!("Parse Error: {}", err),
+        Err(err) => {
+            println!("Parse Error: {}", err);
+            None
+        }
     }
 }
