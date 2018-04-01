@@ -27,7 +27,7 @@ impl Interpreter {
     pub fn interpret(&mut self, program: &[Statement]) -> Result<(), String> {
         for s in program {
             match self.visit_statement(s) {
-                Ok(()) => return Ok(()),
+                Ok(()) => (),
                 Err(err) => match err {
                     CatBoxReturn::Err(error) => return Err(error),
                     CatBoxReturn::Return(_) => {
